@@ -1,60 +1,69 @@
 import streamlit as st
 import requests
 import datetime
-import json
+import re
 
-st.set_page_config(page_title="Antena P2P Paralelo", page_icon="📡")
-st.title("📡 Antena: Paralelo P2P")
+st.set_page_config(page_title="Antena Telegram", page_icon="📲")
+st.title("📲 Antena: Señal Telegram (Paralelo)")
 
-# --- FUNCIÓN CON TÚNEL PARA EVITAR BLOQUEOS ---
+# --- FUNCIÓN PARA EXTRAER DE TELEGRAM (MÉTODO PÚBLICO) ---
 
-def obtener_paralelo_p2p(fuente):
+def obtener_precio_telegram(canal):
     """
-    fuente: 'bybit' o 'yadio'
+    Lee la vista pública de un canal de Telegram y busca el patrón de precio.
+    Canales comunes: 'monitordolarvla', 'enparalelovzla', etc.
     """
-    # Usamos el puente AllOrigins para que Streamlit no sea bloqueado
-    # Apuntamos a la API de PyDolar que resume el P2P de cada exchange
-    target = f"https://pydolarvenezuela-api.vercel.app/api/v1/dollar/unit/{fuente}"
-    proxy = f"https://api.allorigins.win/get?url={target}"
-    
     try:
-        res = requests.get(proxy, timeout=20)
+        # Usamos la vista web pública de Telegram (no necesita API de Bot)
+        url = f"https://t.me/s/{canal}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+        res = requests.get(url, headers=headers, timeout=15)
+        
         if res.status_code == 200:
-            datos = json.loads(res.json()['contents'])
-            return round(float(datos['price']), 2)
-        return "Bloqueo 403"
+            # Buscamos números que parezcan precios (ejemplo: 39,45 o 40.10)
+            # Buscamos el último mensaje que contenga "Bs" o decimales
+            texto = res.text
+            # Esta expresión busca números con coma o punto seguidos de "Bs"
+            encontrados = re.findall(r"(\d+[\.,]\d+)\s?Bs", texto)
+            
+            if encontrados:
+                # El último precio publicado suele ser el final de la lista
+                precio_raw = encontrados[-1].replace(",", ".")
+                return round(float(precio_raw), 2)
+        return "Buscando..."
     except:
         return "Sin señal"
 
 # --- EJECUCIÓN ---
 
-# Buscamos el paralelo de cada una
-p_bybit = obtener_paralelo_p2p("bybit")
-p_yadio = obtener_paralelo_p2p("yadio")
+# Probamos con dos canales populares que reportan Bybit y Paralelo
+p_monitor = obtener_precio_telegram("monitordolarvla")
+p_bybit_tele = obtener_precio_telegram("EnParaleloVzlaVip") # Ejemplo de canal
 
 hora_actual = (datetime.datetime.now() - datetime.timedelta(hours=4)).strftime("%I:%M:%S %p")
 
-# Mostrar en pantalla
-st.subheader("📊 Cotización P2P (Paralelo)")
+st.subheader("📊 Precios extraídos de Telegram")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.metric("Bybit P2P", f"{p_bybit} Bs")
-    st.caption("Promedio vendedores Bybit")
+    st.metric("Monitor Paralelo", f"{p_monitor} Bs")
+    st.caption("Fuente: @monitordolarvla")
 
 with col2:
-    st.metric("Yadio P2P", f"{p_yadio} Bs")
-    st.caption("Promedio mercado Yadio")
+    st.metric("Bybit/P2P Ref", f"{p_bybit_tele} Bs")
+    st.caption("Fuente: @EnParaleloVzla")
 
-# --- GUARDADO PARA TU CALCULADORA ---
-# Formato: BYBIT|YADIO
-info_p2p = f"{p_bybit}|{p_yadio}"
+# --- GUARDADO ---
+info_tele = f"{p_monitor}|{p_bybit_tele}"
 
-if "Bloqueo" not in str(p_bybit) and "Sin" not in str(p_bybit):
+# Solo guardamos si capturó números reales
+if isinstance(p_monitor, float):
     with open("tasa.txt", "w") as f:
-        f.write(info_p2p)
-    st.success(f"✅ Señal P2P sincronizada: {info_p2p}")
+        f.write(info_tele)
+    st.success(f"✅ ¡Señal de Telegram capturada!: {info_tele}")
 else:
-    st.warning("La señal está inestable, intentando reconectar por el túnel...")
+    st.warning("Telegram está tardando en responder. Refresca la antena.")
 
-st.write(f"🕒 **Sincronizado a las:** {hora_actual}")
+st.write(f"🕒 **Sincronizado:** {hora_actual}")
