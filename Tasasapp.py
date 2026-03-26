@@ -2,66 +2,61 @@ import streamlit as st
 import requests
 import datetime
 
-st.set_page_config(page_title="Antena Multi-Tasas", page_icon="💰")
-st.title("💰 Tasas: AlCambio & ApiDolar")
+st.set_page_config(page_title="Antena AlCambio", page_icon="📈")
+st.title("📈 Antena: Señal AlCambio")
 
-# --- FUNCIONES DE AGREGADORES (MÁS ESTABLES) ---
+# --- FUNCIÓN ESPECÍFICA PARA ALCAMBIO ---
 
-def obtener_alcambio():
+def obtener_alcambio_p2p():
     try:
-        # Endpoint de AlCambio para paralelo/promedio
+        # Usamos el endpoint público de AlCambio
         url = "https://api.alcambio.app/public/v1/metas/rates?per_page=1"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        res = requests.get(url, headers=headers, timeout=10)
+        # Cabecera simple para que nos dejen pasar
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+        res = requests.get(url, headers=headers, timeout=12)
+        
         if res.status_code == 200:
-            # Buscamos la tasa del paralelo o promedio USDT
             data = res.json()
-            # Esta ruta puede variar un poco según su JSON, ajustamos al valor principal
-            tasa = data['data'][0]['p2p_buy'] # O 'parallel'
-            return round(float(tasa), 2)
-        return "Error 403"
-    except:
-        return "Sin señal"
-
-def obtener_apidolar():
-    try:
-        # ApiDolar es muy buena para promedios de Venezuela
-        url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar/unit/promedio"
-        res = requests.get(url, timeout=10)
-        if res.status_code == 200:
-            return round(float(res.json()['price']), 2)
-        return "Error Red"
-    except:
-        return "Sin señal"
+            # AlCambio entrega una lista de tasas. 
+            # p2p_buy es el promedio de compra en los exchanges (Bybit/Binance)
+            tasa_p2p = data['data'][0]['p2p_buy']
+            # parallel es la tasa del monitor/paralelo
+            tasa_paralelo = data['data'][0]['parallel']
+            
+            return round(float(tasa_p2p), 2), round(float(tasa_paralelo), 2)
+        return "Error 403", "Error 403"
+    except Exception as e:
+        return "Sin señal", "Sin señal"
 
 # --- EJECUCIÓN ---
 
-tasa_alcambio = obtener_alcambio()
-tasa_apidolar = obtener_apidolar()
+tasa_p2p, tasa_paralelo = obtener_alcambio_p2p()
 
 hora_actual = (datetime.datetime.now() - datetime.timedelta(hours=4)).strftime("%I:%M:%S %p")
 
-# Visualización
+# Diseño en pantalla
+st.subheader("📊 Reporte de AlCambio")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.metric("📊 AlCambio", f"{tasa_alcambio} Bs")
-    st.caption("Promedio P2P / Paralelo")
+    st.metric("Promedio P2P", f"{tasa_p2p} Bs")
+    st.caption("Basado en vendedores reales")
 
 with col2:
-    st.metric("💵 ApiDolar", f"{tasa_apidolar} Bs")
-    st.caption("Monitor Promedio")
+    st.metric("Dólar Paralelo", f"{tasa_paralelo} Bs")
+    st.caption("Referencia Monitor")
 
-# --- GUARDADO ---
-# Mantenemos el formato para tu calculadora
-# Formato: ALCAMBIO|APIDOLAR
-info_final = f"{tasa_alcambio}|{tasa_apidolar}"
+# --- GUARDADO PARA LA CALCULADORA ---
+# Formato: P2P|PARALELO
+info_alcambio = f"{tasa_p2p}|{tasa_paralelo}"
 
 try:
     with open("tasa.txt", "w") as f:
-        f.write(info_final)
-    st.success(f"✅ ¡Señal activa!: {info_final}")
+        f.write(info_alcambio)
+    st.success(f"✅ AlCambio sincronizado: `{info_alcambio}`")
 except:
-    st.error("Error al escribir tasa.txt")
+    st.error("Error al escribir el archivo tasa.txt")
 
-st.write(f"🕒 **Actualizado:** {hora_actual}")
+st.write(f"🕒 **Última actualización:** {hora_actual}")
