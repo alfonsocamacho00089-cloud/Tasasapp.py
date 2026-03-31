@@ -1,7 +1,7 @@
 import requests
 import json
-from pyDolarVenezuela.pagues import Monitor
-from pyDolarVenezuela import provider # Importamos esto para elegir la fuente
+from pyDolarVenezuela import Monitor
+# Quitamos la importación de provider que dio error
 
 def obtener_yadio_manual():
     url = "https://api.yadio.io/json/VES"
@@ -9,7 +9,6 @@ def obtener_yadio_manual():
         response = requests.get(url, timeout=15)
         if response.status_code == 200:
             res_json = response.json()
-            # Usamos 'rate' como descubriste
             return res_json['USD']['rate'] 
         return None
     except Exception as e:
@@ -19,11 +18,12 @@ def obtener_yadio_manual():
 def actualizar_todo():
     datos_finales = {}
     
-    # 1. Intentar pyDolarVenezuela especificando el PROVEEDOR
+    # 1. Intentar pyDolarVenezuela usando el nombre del proveedor como texto
     try:
-        print("Intentando cargar pyDolarVenezuela (CriptoDolar)...")
-        # Aquí estaba el fallo, ahora le pasamos provider.CriptoDolar
-        monitor = Monitor(provider.CriptoDolar) 
+        print("Intentando cargar pyDolarVenezuela...")
+        # Probamos pasándole 'criptodolar' en minúsculas como string
+        # Si esto falla, la librería por defecto debería usar CriptoDolar si pones Monitor('criptodolar')
+        monitor = Monitor(provider='criptodolar') 
         datos_pydolar = monitor.get_all_monitors()
         
         if datos_pydolar:
@@ -32,11 +32,10 @@ def actualizar_todo():
     except Exception as e:
         print(f"❌ Error crítico en pyDolarVenezuela: {e}")
 
-    # 2. Obtener Yadio (Tu respaldo confiable)
+    # 2. Obtener Yadio
     yadio_rate = obtener_yadio_manual()
     
     if yadio_rate:
-        # Lo metemos en el diccionario final
         datos_finales["yadio"] = {
             "title": "Yadio API",
             "price": yadio_rate
