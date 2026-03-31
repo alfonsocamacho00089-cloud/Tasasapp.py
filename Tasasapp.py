@@ -24,20 +24,24 @@ LISTA_HEADERS = [
 ]
 
 def obtener_bybit():
-    # Esta es la URL exacta que Yadio usa para mostrar los precios de exchanges
-    url = "https://api.yadio.io/json/VES"
+    # Esta es la URL que contiene TODOS los exchanges
+    url = "https://api.yadio.io/exchanges/ves"
     try:
         response = requests.get(url, timeout=15)
         if response.status_code == 200:
-            res_json = response.json()
-            # Buscamos 'bybit' dentro del JSON de exchanges
-            # El precio suele estar en res_json['bybit']['price']
-            return res_json['bybit']['price']
-        return f"Error Puente: {response.status_code}"
+            datos = response.json()
+            
+            # Buscamos 'bybit' en minúsculas o mayúsculas
+            # Yadio a veces lo pone como 'bybit' o dentro de otra categoría
+            if 'bybit' in datos:
+                return datos['bybit'].get('price', "Sin precio en JSON")
+            
+            # Si no lo encuentra directo, buscamos en los nombres de los bancos
+            return "Bybit no está en la lista"
+            
+        return f"Error {response.status_code}"
     except Exception as e:
-        # Si por alguna razón no encuentra 'bybit' en la lista
-        return "Precio no disponible"
-
+        return f"Error de conexión: {e}"
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
