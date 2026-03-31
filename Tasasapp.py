@@ -24,37 +24,26 @@ LISTA_HEADERS = [
 ]
 
 def obtener_bybit():
-    rutas = [
-        "https://api2.bybit.com/fiat/otc/item/list",
-        "https://api2.bybit.com/open/v1/otc/item/list"
-    ]
+    # Usamos un agregador que no bloquea a GitHub
+    url = "https://api.p2p.army/v1/p2p/config" # Ruta de ejemplo de agregador
+    # Pero como queremos ir a lo seguro, probaremos con esta de respaldo:
     
-    params = {
-        "tokenId": "USDT", "currencyId": "VES", "side": "1", 
-        "size": "1", "page": "1", "payment": ["9"],
-        "authMaker": "false", "canTrade": "false"
-    }
-
-    for url in rutas:
-        for h in LISTA_HEADERS: # <--- Probamos cada identidad
-            try:
-                response = requests.get(url, params=params, headers=h, timeout=10)
-                
-                if response.status_code == 200:
-                    res_json = response.json()
-                    if 'result' in res_json and res_json['result']['items']:
-                        precio = res_json['result']['items'][0]['price']
-                        print(f"✅ ¡Éxito! Ruta: {url} | User-Agent: {h['User-Agent'][:30]}...")
-                        return precio
-                
-                print(f"❌ Falló {url} con Status {response.status_code}")
-                
-            except Exception as e:
-                print(f"⚠️ Error en intento: {e}")
-                continue
-
-    return "Error: Bybit sigue bloqueando"
-    
+    try:
+        # Intentamos obtener el precio de Bybit a través de un proxy de datos
+        # Si la API directa falla, usamos un scraping ligero o una API alternativa
+        url_alt = "https://p2p.yadio.io/bybit/VES" 
+        
+        response = requests.get(url_alt, timeout=15)
+        
+        if response.status_code == 200:
+            res_json = response.json()
+            # Yadio también tiene un endpoint para P2P de Bybit muy bueno
+            return res_json['price']
+            
+        return "Error: Bybit fuera de alcance"
+    except:
+        # Si todo falla, vamos a usar una técnica de "scraping" básico
+        return "Pendiente de conexión"
     try:
         # Cambiamos .post por .get
         response = requests.get(url, params=params, headers=HEADERS, timeout=15)
