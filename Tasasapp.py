@@ -11,7 +11,6 @@ HEADERS = {
 }
 
 def obtener_bybit():
-def obtener_bybit():
     # Nueva URL para peticiones GET (más estable)
     url = "https://api2.bybit.com/fiat/otc/item/list"
     
