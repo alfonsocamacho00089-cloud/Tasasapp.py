@@ -2,18 +2,14 @@ name: Actualizador de P2P Bybit y Yadio
 
 on:
   schedule:
-    # Corre cada 18 minutos en el horario activo de Venezuela
     - cron: '*/18 9-23,0-4 * * *'
   workflow_dispatch: 
 
 jobs:
   actualizar-p2p:
     runs-on: ubuntu-latest
-    
-    # --- ESTOS SON LOS PERMISOS CRUCIALES ---
     permissions:
-      contents: write  # Permite al BOT escribir/modificar archivos en el repo
-    # ----------------------------------------
+      contents: write
 
     steps:
       - name: Descargar código
@@ -22,23 +18,19 @@ jobs:
       - name: Instalar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.10' # Subimos a 3.10 para mejor compatibilidad
 
       - name: Instalar Dependencias
         run: |
           pip install requests
-          pip install pyDolarVenezuela  # Necesario para la nueva librería
+          pip install -U pyDolarVenezuela  # El -U asegura que se actualice a la última versión
 
       - name: Correr Script P2P
-        run: python Tasasapp.py  # Asegúrate que el archivo se llame exactamente así
+        run: python Tasasapp.py
 
       - name: Guardar cambios en el repo
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # Añadimos el archivo generado
           git add tasas.json
-
-          # Solo hace commit si hubo cambios reales para evitar errores
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Tasas actualizadas: pyDolar + Yadio" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Tasas actualizadas" && git push)
