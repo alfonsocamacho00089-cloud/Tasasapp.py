@@ -37,7 +37,7 @@ def obtener_bybit():
             import re
             #
  
- def obtener_yadio():
+  def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
     try:
