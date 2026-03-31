@@ -10,7 +10,7 @@ def obtener_yadio_manual():
         response = requests.get(url, timeout=15)
         if response.status_code == 200:
             res_json = response.json()
-            return res_json['USD']['price']
+            return res_json['USD']['rate']
         return None
     except Exception:
         return None
