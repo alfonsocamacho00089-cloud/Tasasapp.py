@@ -23,35 +23,29 @@ LISTA_HEADERS = [
     }
 ]
 def obtener_bybit():
-    # INTENTO 1: Buscar Bybit en la API de PyDolar (Datos en vivo)
+def obtener_bybit():
+    # Intentamos con PyDolar que es la más estable para P2P en Venezuela
+    url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=cripto"
+    
     try:
-        url1 = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=cripto"
-        res = requests.get(url1, timeout=10)
-        if res.status_code == 200:
-            monedas = res.json().get('monedas', {})
-            if 'bybit' in monedas: 
+        response = requests.get(url, timeout=15)
+        if response.status_code == 200:
+            datos = response.json()
+            # Intentamos sacar Bybit, y si Bybit no reportó, sacamos Binance 
+            # (Binance es el estándar del mercado P2P, no es un invento)
+            monedas = datos.get('monedas', {})
+            
+            if 'bybit' in monedas:
                 return monedas['bybit']['price']
-    except:
-        pass
-
-    # INTENTO 2: Si Bybit falla, buscar Binance (que es el gemelo de Bybit)
-    try:
-        # Usamos el puente de Yadio para sacar Binance en vivo
-        url2 = "https://api.yadio.io/exchanges/binance/ves"
-        res2 = requests.get(url2, timeout=10)
-        if res2.status_code == 200:
-            return res2.json()['price']
-    except:
-        pass
-
-    # INTENTO 3: Si todo lo anterior falla, usamos el promedio de Cripto en vivo
-    try:
-        url3 = "https://api.yadio.io/exchanges/ves"
-        res3 = requests.get(url3, timeout=10)
-        # Sacamos el promedio de todos los exchanges cripto
-        return res3.json()['cryptodolar']['price']
-    except:
-        return "Error: Sin conexión real"
+            elif 'binance' in monedas:
+                return monedas['binance']['price']
+        
+        # Si llegamos aquí es porque la API respondió pero no traía datos
+        return "Error: Datos P2P no disponibles"
+        
+    except Exception as e:
+        # Aquí no hay números fijos. Si falla, el JSON dirá que no hay conexión.
+        return f"Error de conexión real: {str(e)[:20]}"
         
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
