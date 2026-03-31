@@ -171,7 +171,7 @@ def obtener_yadio():
 
 
 
-            return res_json['USD']['price']
+            return res_json['USD']['rate']
 
 
 
