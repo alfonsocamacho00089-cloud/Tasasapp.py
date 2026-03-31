@@ -11,7 +11,7 @@ HEADERS = {
 }
 
 def obtener_bybit():
-    url = "https://api2.bybit.com/fiat/otc/item/list"
+    url ="https://api2.bybit.com/open/v1/otc/item/list"
     # Lógica similar a Binance pero con parámetros de Bybit
     payload = {
         "userId": "",
@@ -41,7 +41,7 @@ def obtener_yadio():
         if response.status_code == 200:
             res_json = response.json()
             # Usamos el precio de USDT
-            return res_json['USD']['price']
+            return res_json['USD']['rate']
         return f"Error Yadio: {response.status_code}"
     except Exception as e:
         return f"Sin señal Yadio: {e}"
