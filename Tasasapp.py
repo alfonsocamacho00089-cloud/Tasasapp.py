@@ -1,6 +1,6 @@
 import requests
 import json
-from pyDolarVenezuela import Monitor
+from pyDolarVenezuela.pagues import Monitor
 from pyDolarVenezuela import provider # Importamos esto para elegir la fuente
 
 def obtener_yadio_manual():
