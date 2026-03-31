@@ -1,7 +1,6 @@
 import requests
 import json
-from pyDolarVenezuela import Monitor
-from pyDolarVenezuela.providers import CriptoDolar # Importación específica del objeto
+from pyDolarVenezuela.providers import Monitor # Importación específica del objeto
 
 def obtener_yadio_manual():
     url = "https://api.yadio.io/json/VES"
