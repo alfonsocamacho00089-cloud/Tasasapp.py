@@ -1,7 +1,7 @@
 [
     {
         "bank": "Bybit P2P",
-        "precio": "Error 404"
+        "precio": "Bybit: Todas las APIs fallaron"
     },
     {
         "bank": "Yadio API",
