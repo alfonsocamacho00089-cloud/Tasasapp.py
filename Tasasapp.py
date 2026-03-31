@@ -2,7 +2,6 @@ import requests
 import json
 import datetime
 import re
-from pyDolarVenezuela.pages 
 import Monitor
 
 
@@ -27,7 +26,7 @@ LISTA_HEADERS = [
 ]
 
 # ... aquí pueden estar tus HEADERS o LISTA_HEADERS si los sigues usando para otras cosas
-
+from pyDolarVenezuela.pages 
 def obtener_datos_venezuela():
     """
     Usa la librería especializada para obtener todo de un solo golpe.
