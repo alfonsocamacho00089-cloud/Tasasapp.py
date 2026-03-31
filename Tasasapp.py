@@ -2,17 +2,31 @@ import requests
 import json
 
 def obtener_tasas_pydolar():
-    # Usamos su API oficial directa
+def obtener_tasas_pydolar():
+    # Esta es la URL directa de la data de CriptoDolar (la que usa pyDolar)
     url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=criptodolar"
+    
+    # Añadimos Headers para que la API no nos rechace por ser un script
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+    }
+    
     try:
-        response = requests.get(url, timeout=15)
+        response = requests.get(url, headers=headers, timeout=20)
+        print(f"Status API: {response.status_code}") # Esto nos dirá si dio 200, 403 o 404
+        
         if response.status_code == 200:
             res_json = response.json()
-            # La API devuelve una lista de monitores en 'monitors'
-            return res_json.get('monitors', {})
+            # La API de CriptoDolar guarda todo dentro de 'monitors'
+            monitores = res_json.get('monitors', {})
+            if monitores:
+                print(f"✅ Se encontraron {len(monitores)} monitores en pyDolar.")
+                return monitores
+        
+        print("⚠️ La API respondió pero 'monitors' vino vacío.")
         return {}
     except Exception as e:
-        print(f"❌ Error consultando la API de pyDolar: {e}")
+        print(f"❌ Error de conexión con la API: {e}")
         return {}
 
 def obtener_yadio_manual():
