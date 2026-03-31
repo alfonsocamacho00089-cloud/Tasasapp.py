@@ -1,264 +1,53 @@
-
 import requests
-
-
-
 import json
+from pyDolarVenezuela.pages import Monitor
 
-
-
-import datetime
-
-
-
-
-
-
-
-# Configuración de Headers para evitar bloqueos
-
-
-
+# Mantener Headers para Yadio
 HEADERS = {
-
-
-
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-
-
-
-    "Content-Type": "application/json",
-
-
-
-    "Referer": "https://m.bybit.com/",
-
-
-
-    "Origin": "https://m.bybit.com"
-
-
-
 }
 
-
-
-
-
-
-
-def obtener_bybit():
-
-
-
-    url = "https://api2.bybit.com/fiat/otc/item/list"
-
-
-
-    # Lógica similar a Binance pero con parámetros de Bybit
-
-
-
-    payload = {
-
-
-
-        "userId": "",
-
-
-
-        "tokenId": "USDT",
-
-
-
-        "currencyId": "VES",
-
-
-
-        "payment": ["Banesco"],
-
-
-
-        "side": "1", # 1 es vender USDT (para obtener el precio que pagan los compradores)
-
-
-
-        "size": "1",
-
-
-
-        "page": "1",
-
-
-
-        "authMaker": "true"
-
-
-
-    }
-
-
-
-    try:
-
-
-
-        # Bybit suele usar POST o GET según la versión de API, esta es la de su web
-
-
-
-        response = requests.post(url, json=payload, headers=HEADERS, timeout=15)
-
-
-
-        if response.status_code == 200:
-
-
-
-            res_json = response.json()
-
-
-
-            return res_json['result']['items'][0]['price']
-
-
-
-        return f"Error Bybit: {response.status_code}"
-
-
-
-    except Exception as e:
-
-
-
-        return f"Sin señal Bybit: {e}"
-
-
-
-
-
-
-
 def obtener_yadio():
-
-
-
-    # Yadio es más directo y no requiere payload complejo
-
-
-
     url = "https://api.yadio.io/json/VES"
-
-
-
     try:
-
-
-
-        response = requests.get(url, timeout=15)
-
-
-
+        response = requests.get(url, headers=HEADERS, timeout=15)
         if response.status_code == 200:
-
-
-
             res_json = response.json()
+            return res_json['USD']['price']
+        return None
+    except Exception:
+        return None
 
+def actualizar_todo():
+    try:
+        # 1. Obtenemos datos de pyDolarVenezuela (BCV, Paralelo, Bybit, etc.)
+        monitor = Monitor()
+        data = monitor.get_all_monitors()
+        
+        # 2. Obtenemos Yadio manualmente (tu función original)
+        precio_yadio = obtener_yadio()
+        
+        # 3. Consolidamos la información
+        # Agregamos Yadio al diccionario para que todo esté en un solo lugar
+        if precio_yadio:
+            data['yadio_api'] = {
+                "title": "Yadio API",
+                "price": precio_yadio
+            }
 
-
-            # Usamos el precio de USDT
-
-
-
-            return res_json['USD']['rate']
-
-
-
-        return f"Error Yadio: {response.status_code}"
-
-
+        # 4. Guardamos en tasas.json con el formato que ya conoces
+        with open('tasas.json', 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+            
+        print("✅ Tasas actualizadas correctamente (Librería + Yadio).")
+        
+        # Print de control para ver en la consola de GitHub Actions
+        bcv = data.get('bcv', {}).get('price')
+        enp = data.get('enparalelovzla', {}).get('price')
+        print(f"BCV: {bcv} | Paralelo: {enp} | Yadio: {precio_yadio}")
 
     except Exception as e:
+        print(f"❌ Error general: {e}")
 
-
-
-        return f"Sin señal Yadio: {e}"
-
-
-
-
-
-
-
-# --- EJECUCIÓN ---
-
-
-
-
-
-
-
-precio_bybit = obtener_bybit()
-
-
-
-precio_yadio = obtener_yadio()
-
-
-
-
-
-
-
-# Estructura del resultado
-
-
-
-resultado = [
-
-
-
-    {"bank": "Bybit P2P", "precio": precio_bybit},
-
-
-
-    {"bank": "Yadio API", "precio": precio_yadio}
-
-
-
-]
-
-
-
-
-
-
-
-# Guardar en tasas.json
-
-
-
-with open("tasas.json", "w") as f:
-
-
-
-    json.dump(resultado, f, indent=4)
-
-
-
-
-
-
-
-print(f"Actualizado con éxito: Bybit: {precio_bybit} | Yadio: {precio_yadio}")
-
-
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    actualizar_todo()
