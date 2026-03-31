@@ -34,4 +34,6 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add tasas.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Tasas actualizadas: $(date)" && git push)
+          # Esto hace el commit solo si hay cambios, pero no detiene el flujo
+          git commit -m "Actualización forzada: $(date)" || echo "Sin cambios detectados por Git"
+          git push
