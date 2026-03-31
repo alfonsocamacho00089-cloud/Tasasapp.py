@@ -24,36 +24,26 @@ LISTA_HEADERS = [
 ]
 
 def obtener_bybit():
-    # URL directa para buscar anuncios de Banesco en Bybit
     url = "https://api2.bybit.com/fiat/otc/item/list"
-    
-    # Estos son los datos para filtrar por Banesco (ID 9)
     payload = {
-        "userId": "",
-        "tokenId": "USDT",
-        "currencyId": "VES",
-        "payment": ["9"], # El número 9 es Banesco en Bybit
-        "side": "1",      # 1 es vender (el precio que pagan los compradores)
-        "size": "1",
-        "page": "1",
-        "authMaker": "false",
-        "canTrade": "false"
+        "userId": "", "tokenId": "USDT", "currencyId": "VES",
+        "payment": ["9"], "side": "1", "size": "1",
+        "page": "1", "authMaker": "false", "canTrade": "false"
     }
 
-    try:
-        # Intentamos con un POST, simulando que venimos de la web de Bybit
-        response = requests.post(url, json=payload, headers=HEADERS, timeout=15)
-        
-        if response.status_code == 200:
-            res_json = response.json()
-            # Si hay anuncios, sacamos el precio del primero
-            if res_json['result']['items']:
-                return res_json['result']['items'][0]['price']
-            return "Sin anuncios en Banesco"
-            
-        return f"Bybit bloqueado ({response.status_code})"
-    except Exception as e:
-        return f"Error conexión: {e}"
+    # Probamos con cada una de tus 3 identidades hasta que una funcione
+    for h in LISTA_HEADERS:
+        try:
+            response = requests.post(url, json=payload, headers=h, timeout=15)
+            if response.status_code == 200:
+                res_json = response.json()
+                if res_json['result']['items']:
+                    return res_json['result']['items'][0]['price']
+            print(f"Fallo con una identidad, probando la siguiente... (Status: {response.status_code})")
+        except:
+            continue
+
+    return "Bybit: Bloqueo total de identidades"
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
