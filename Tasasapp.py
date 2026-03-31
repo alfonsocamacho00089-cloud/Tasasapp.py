@@ -2,7 +2,6 @@ import requests
 import json
 from pyDolarVenezuela import Monitor
 
-# Mantener Headers para Yadio
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
 }
@@ -20,33 +19,32 @@ def obtener_yadio():
 
 def actualizar_todo():
     try:
-        # 1. Obtenemos datos de pyDolarVenezuela (BCV, Paralelo, Bybit, etc.)
+        # 1. Inicializar Monitor
         monitor = Monitor()
+        
+        # 2. Obtener datos de la librería PRIMERO
+        monitores = monitor.get_all_monitors()
+        
+        # 3. Crear el diccionario 'data' (Convertir a dict si es necesario)
+        data = {k: (v.to_dict() if hasattr(v, 'to_dict') else v) for k, v in monitores.items()}
 
-        
-        # 2. Obtenemos Yadio manualmente (tu función original)
+        # 4. AHORA sí, obtener Yadio y agregarlo a 'data'
         precio_yadio = obtener_yadio()
-        
-        # 3. Consolidamos la información
-        # Agregamos Yadio al diccionario para que todo esté en un solo lugar
         if precio_yadio:
             data['yadio_api'] = {
                 "title": "Yadio API",
                 "price": precio_yadio
             }
-        # Obtenemos los datos y los convertimos a un formato que JSON sí entienda
-        monitores = monitor.get_all_monitors()
-        data = {k: (v.to_dict() if hasattr(v, 'to_dict') else v) for k, v in monitores.items()}
-
-        # 4. Guardamos en tasas.json con el formato que ya conoces
+        
+        # 5. Guardar en el archivo
         with open('tasas.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
             
-        print("✅ Tasas actualizadas correctamente (Librería + Yadio).")
+        print("✅ Tasas actualizadas correctamente.")
         
-        # Print de control para ver en la consola de GitHub Actions
-        bcv = data.get('bcv', {}).get('price')
-        enp = data.get('enparalelovzla', {}).get('price')
+        # Debug para GitHub Actions
+        bcv = data.get('bcv', {}).get('price', 'N/A')
+        enp = data.get('enparalelovzla', {}).get('price', 'N/A')
         print(f"BCV: {bcv} | Paralelo: {enp} | Yadio: {precio_yadio}")
 
     except Exception as e:
