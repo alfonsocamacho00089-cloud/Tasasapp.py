@@ -24,49 +24,36 @@ LISTA_HEADERS = [
 ]
 
 def obtener_bybit():
-    # Lista de fuentes (APIs alternativas) para sacar el precio de Bybit
-    fuentes = [
-        {
-            "nombre": "Exchangemonitor",
-            "url": "https://p2p.exchangemonitor.net/api/v1/get/bybit/ves",
-            "llave": "price"
-        },
-        {
-            "nombre": "P2P Proxy",
-            "url": "https://api.p2p.army/v1/p2p/config", # Ejemplo de ruta alterna
-            "llave": "bybit_price"
-        },
-        {
-            "nombre": "Yadio Exchanges",
-            "url": "https://api.yadio.io/exchanges/ves",
-            "llave": "bybit"
-        }
-    ]
+    # URL directa para buscar anuncios de Banesco en Bybit
+    url = "https://api2.bybit.com/fiat/otc/item/list"
+    
+    # Estos son los datos para filtrar por Banesco (ID 9)
+    payload = {
+        "userId": "",
+        "tokenId": "USDT",
+        "currencyId": "VES",
+        "payment": ["9"], # El número 9 es Banesco en Bybit
+        "side": "1",      # 1 es vender (el precio que pagan los compradores)
+        "size": "1",
+        "page": "1",
+        "authMaker": "false",
+        "canTrade": "false"
+    }
 
-    for fuente in fuentes:
-        try:
-            print(f"Probando fuente: {fuente['nombre']}...")
-            response = requests.get(fuente['url'], timeout=10)
+    try:
+        # Intentamos con un POST, simulando que venimos de la web de Bybit
+        response = requests.post(url, json=payload, headers=HEADERS, timeout=15)
+        
+        if response.status_code == 200:
+            res_json = response.json()
+            # Si hay anuncios, sacamos el precio del primero
+            if res_json['result']['items']:
+                return res_json['result']['items'][0]['price']
+            return "Sin anuncios en Banesco"
             
-            if response.status_code == 200:
-                datos = response.json()
-                
-                # Lógica especial para Yadio (porque los datos vienen dentro de 'bybit')
-                if fuente['nombre'] == "Yadio Exchanges":
-                    if 'bybit' in datos:
-                        return datos['bybit']['price']
-                
-                # Lógica para otras APIs que devuelven el precio directo
-                if fuente['llave'] in datos:
-                    return datos[fuente['llave']]
-                    
-            print(f"❌ {fuente['nombre']} no respondió bien (Status: {response.status_code})")
-            
-        except Exception as e:
-            print(f"⚠️ Error conectando a {fuente['nombre']}: {e}")
-            continue # Salta a la siguiente fuente
-
-    return "Bybit: Todas las APIs fallaron"
+        return f"Bybit bloqueado ({response.status_code})"
+    except Exception as e:
+        return f"Error conexión: {e}"
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
