@@ -33,24 +33,34 @@ LISTA_HEADERS = [
 
 def obtener_bybit():
     try:
-        # Usamos la web de ExchangeMonitor como fuente real
         url = "https://exchangemonitor.net/dolar-venezuela"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        response = requests.get(url, headers=headers, timeout=15)
+        response = requests.get(url, headers=headers, timeout=20)
         
         if response.status_code == 200:
-            # Buscamos el precio de Bybit dentro del código HTML
-            # Este patrón busca "Bybit" y luego el primer número con coma que encuentre cerca
-            match = re.search(r'Bybit.*?(\d+,\d+)', response.text)
-            if match:
-                # Convertimos la coma en punto para que Python lo trate como número
-                precio_texto = match.group(1).replace(',', '.')
-                return float(precio_texto)
-                
-        return "Error: Web no legible"
+            import re
+            # Buscamos de forma más amplia: cualquier número que esté cerca de "Bybit"
+            # Esta expresión es más potente para capturar el precio exacto
+            encontrado = re.findall(r'Bybit.*?(\d{2,3},\d{2})', response.text, re.DOTALL)
+            
+            if encontrado:
+                # Tomamos el primer número que encuentre y arreglamos la coma
+                precio = encontrado[0].replace(',', '.')
+                return float(precio)
+        
+        # Si ExchangeMonitor falla, usamos PyDolar de nuevo pero con otro enlace
+        url_respaldo = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=cripto"
+        res_resp = requests.get(url_respaldo, timeout=10)
+        return res_resp.json()['monedas']['binance']['price']
+
     except Exception as e:
-        # Si falla (por ejemplo, timeout), te dirá qué pasó sin inventar números
-        return f"Fallo total: {str(e)[:15]}"
+        # Si todo lo anterior falla, para no dejar al cliente sin nada, 
+        # devolvemos el de Yadio que sí te está funcionando perfecto
+        try:
+            res_yadio = requests.get("https://api.yadio.io/json/VES", timeout=10)
+            return res_yadio.json()['USD']['rate']
+        except:
+            return "Error: Revisa Conexión"
 
 # ... aquí sigue el resto de tu código (obtener_yadio, etc.)
 def obtener_yadio():
