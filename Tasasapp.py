@@ -24,38 +24,20 @@ LISTA_HEADERS = [
 ]
 
 def obtener_bybit():
-    # Yadio nos sirve de puente para obtener Bybit sin bloqueos
-    url = "https://api.yadio.io/exchanges/bybit/ves"
+def obtener_bybit():
+    # Esta es la URL exacta que Yadio usa para mostrar los precios de exchanges
+    url = "https://api.yadio.io/exchanges/ves" 
     try:
         response = requests.get(url, timeout=15)
         if response.status_code == 200:
             res_json = response.json()
-            # Yadio devuelve el precio de Bybit aquí:
-            return res_json['price']
+            # Buscamos 'bybit' dentro del JSON de exchanges
+            # El precio suele estar en res_json['bybit']['price']
+            return res_json['bybit']['price']
         return f"Error Puente: {response.status_code}"
     except Exception as e:
-        return f"Sin señal: {e}"
-    try:
-        # Cambiamos .post por .get
-        response = requests.get(url, params=params, headers=HEADERS, timeout=15)
-        
-        if response.status_code == 200:
-            res_json = response.json()
-            # Accedemos a la estructura de la respuesta
-            return res_json['result']['items'][0]['price']
-        
-        return f"Error Bybit: {response.status_code}"
-    except Exception as e:
-        return f"Sin señal Bybit: {e}"
-    try:
-        # Bybit suele usar POST o GET según la versión de API, esta es la de su web
-        response = requests.post(url, json=payload, headers=HEADERS, timeout=15)
-        if response.status_code == 200:
-            res_json = response.json()
-            return res_json['result']['items'][0]['price']
-        return f"Error Bybit: {response.status_code}"
-    except Exception as e:
-        return f"Sin señal Bybit: {e}"
+        # Si por alguna razón no encuentra 'bybit' en la lista
+        return "Precio no disponible"
 
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
