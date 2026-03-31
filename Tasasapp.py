@@ -23,44 +23,31 @@ LISTA_HEADERS = [
     }
 ]
 
-
-
-
-
-
-
 # ... aquí pueden estar tus HEADERS o LISTA_HEADERS si los sigues usando para otras cosas
 
 def obtener_bybit():
+    # Intentamos con una fuente que separa los monitores de Venezuela
+    # Esta ruta busca específicamente el promedio de los exchanges P2P
+    url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=enparalelovzla"
+    
     try:
-        url = "https://exchangemonitor.net/dolar-venezuela"
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        response = requests.get(url, headers=headers, timeout=20)
-        
+        response = requests.get(url, timeout=15)
         if response.status_code == 200:
-            import re
-            # Buscamos de forma más amplia: cualquier número que esté cerca de "Bybit"
-            # Esta expresión es más potente para capturar el precio exacto
-            encontrado = re.findall(r'Bybit.*?(\d{2,3},\d{2})', response.text, re.DOTALL)
+            datos = response.json()
+            monedas = datos.get('monedas', {})
             
-            if encontrado:
-                # Tomamos el primer número que encuentre y arreglamos la coma
-                precio = encontrado[0].replace(',', '.')
-                return float(precio)
-        
-        # Si ExchangeMonitor falla, usamos PyDolar de nuevo pero con otro enlace
-        url_respaldo = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=cripto"
-        res_resp = requests.get(url_respaldo, timeout=10)
-        return res_resp.json()['monedas']['binance']['price']
-
-    except Exception as e:
-        # Si todo lo anterior falla, para no dejar al cliente sin nada, 
-        # devolvemos el de Yadio que sí te está funcionando perfecto
-        try:
-            res_yadio = requests.get("https://api.yadio.io/json/VES", timeout=10)
-            return res_yadio.json()['USD']['rate']
-        except:
-            return "Error: Revisa Conexión"
+            # Buscamos 'EnParaleloVzla' que suele ser el de 660 o el de 659 que me mostraste
+            if 'enparalelovzla' in monedas:
+                return monedas['enparalelovzla']['price']
+            
+            # Si no, buscamos cualquier monitor que diga 'P2P'
+            for clave, valor in monedas.items():
+                if 'p2p' in clave.lower():
+                    return valor['price']
+                    
+        return "Error: Fuente no disponible"
+    except:
+        return "Error: Fallo de conexión real"
 
 # ... aquí sigue el resto de tu código (obtener_yadio, etc.)
 def obtener_yadio():
