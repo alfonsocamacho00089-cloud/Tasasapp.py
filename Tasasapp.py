@@ -1,57 +1,43 @@
 import requests
 import json
+import os
 from pyDolarVenezuela import Monitor
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-}
 
 def obtener_yadio():
     url = "https://api.yadio.io/json/VES"
     try:
-        response = requests.get(url, headers=HEADERS, timeout=15)
+        response = requests.get(url, timeout=15)
         if response.status_code == 200:
-            res_json = response.json()
-            return res_json['USD']['price']
+            return response.json()['USD']['price']
+    except:
         return None
-    except Exception:
-        return None
+    return None
 
 def actualizar_todo():
+    data = {}
+    
+    # Obtenemos los monitores (BCV, Paralelo, etc.)
     try:
-        # 1. Inicializar Monitor
         monitor = Monitor()
-        
-        # 2. Obtener datos de la librería PRIMERO
         monitores = monitor.get_all_monitors()
-        
-        # 3. Crear el diccionario 'data' (Convertir a dict si es necesario)
-        data = {k: (v.to_dict() if hasattr(v, 'to_dict') else v) for k, v in monitores.items()}
-
-        # 4. AHORA sí, obtener Yadio y agregarlo a 'data'
-        precio_yadio = obtener_yadio()
-        if precio_yadio:
-            data['yadio_api'] = {
-                "title": "Yadio API",
-                "price": precio_yadio
-            }
-        
-        # 5. Guardar en el archivo
-        import os
-        ruta_archivo = 'tasas.json'
-        with open(ruta_archivo, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-            
-        print(f"✅ Tasas actualizadas correctamente.")
-        print(f"📁 Archivo guardado en: {os.path.abspath(ruta_archivo)}")
-        
-        # Debug para GitHub Actions
-        bcv = data.get('bcv', {}).get('price', 'N/A')
-        enp = data.get('enparalelovzla', {}).get('price', 'N/A')
-        print(f"BCV: {bcv} | Paralelo: {enp} | Yadio: {precio_yadio}")
-
+        for k, v in monitores.items():
+            data[k] = v.to_dict() if hasattr(v, 'to_dict') else v
     except Exception as e:
-        print(f"❌ Error general: {e}")
+        print(f"Error en Monitor: {e}")
+
+    # Agregamos Yadio siempre que responda la API
+    precio_yadio = obtener_yadio()
+    if precio_yadio:
+        data['yadio_api'] = {"title": "Yadio API", "price": precio_yadio}
+
+    # GUARDADO FORZOSO
+    if data:
+        ruta = os.path.join(os.getcwd(), 'tasas.json')
+        with open(ruta, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        print(f"✅ Archivo tasas.json escrito con {len(data)} monitores.")
+    else:
+        print("❌ No se obtuvieron datos.")
 
 if __name__ == "__main__":
     actualizar_todo()
