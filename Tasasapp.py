@@ -27,7 +27,7 @@ LISTA_HEADERS = [
 
 def obtener_bybit():
     
-    url = "https://api.Bybit.io/json/VES"
+    url = "https://bybit.com"
     try:
         response = requests.get(url, timeout=15)
         if response.status_code == 200:
