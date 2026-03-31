@@ -21,7 +21,7 @@ jobs:
 
       - name: Instalar Dependencias
         run: |
-          pip install requests pyDolarVenezuela
+          pip install requests 
       
       - name: Correr Script de Tasas
         run: python Tasasapp.py
