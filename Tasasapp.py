@@ -16,53 +16,53 @@ def obtener_bybit():
         "Content-Type": "application/json"
     }
     try:
-        # Bybit a veces se pone pesado, intentamos con un timeout largo
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        response = requests.post(url, json=payload, headers=headers, timeout=20)
         if response.status_code == 200:
-            items = response.json().get('result', {}).get('items', [])
+            res_json = response.json()
+            items = res_json.get('result', {}).get('items', [])
             if items:
                 return items[0]['price']
-        return None
     except:
         return None
+    return None
 
-def obtener_datos_yadio():
-    # Yadio tiene una API que da TODO: P2P, BCV y Paralelo
+def obtener_yadio():
     url = "https://api.yadio.io/json/VES"
     try:
-        response = requests.get(url, timeout=25)
+        response = requests.get(url, timeout=20)
         if response.status_code == 200:
-            return response.json()
-        return None
+            res_json = response.json()
+            # Usamos 'rate' que es el que te funcionó
+            return res_json.get('USD', {}).get('rate')
     except:
         return None
+    return None
 
 def actualizar_todo():
     datos_finales = {}
     
-    # 1. Intentar Bybit
-    p_bybit = obtener_bybit()
-    if p_bybit:
-        datos_finales["bybit"] = {"title": "Bybit P2P", "price": float(p_bybit)}
-        print(f"✅ Bybit: {p_bybit}")
+    # 1. Obtener Bybit
+    precio_bybit = obtener_bybit()
+    if precio_bybit:
+        datos_finales["bybit"] = {"title": "Bybit P2P", "price": precio_bybit}
+        print(f"✅ Bybit cargado: {precio_bybit}")
 
-    # 2. Intentar Yadio (Trae todo)
-    yadio_data = obtener_datos_yadio()
-    if yadio_data:
-        # Guardamos el Yadio normal que ya usabas
-        datos_finales["yadio"] = {"title": "Yadio API", "price": yadio_data['USD']['rate']}
-        
-        # AGREGAMOS BCV Y PARALELO DESDE YADIO (Para no extrañar a pyDolar)
-        datos_finales["bcv"] = {"title": "Banco Central", "price": yadio_data['dtp']['bcv']['price']}
-        datos_finales["enparalelovzla"] = {"title": "EnParaleloVzla", "price": yadio_data['dtp']['ppub']['price']}
-        
-        print(f"✅ Yadio y Tasas BCV/Paralelo cargadas.")
+    # 2. Obtener Yadio
+    precio_yadio = obtener_yadio()
+    if precio_yadio:
+        datos_finales["yadio"] = {"title": "Yadio API", "price": precio_yadio}
+        print(f"✅ Yadio cargado: {precio_yadio}")
 
-    # 3. Guardar el archivo
+    # 3. Guardar el archivo tasas.json
     if datos_finales:
-        with open('tasas.json', 'w', encoding='utf-8') as f:
-            json.dump(datos_finales, f, indent=4, ensure_ascii=False)
-        print("💾 tasas.json actualizado con éxito.")
+        try:
+            with open('tasas.json', 'w', encoding='utf-8') as f:
+                json.dump(datos_finales, f, indent=4, ensure_ascii=False)
+            print("💾 Archivo 'tasas.json' actualizado con éxito.")
+        except Exception as e:
+            print(f"❌ Error al escribir el archivo: {e}")
+    else:
+        print("🚫 No se pudo obtener ninguna tasa, el archivo no se actualizó.")
 
 if __name__ == "__main__":
     actualizar_todo()
