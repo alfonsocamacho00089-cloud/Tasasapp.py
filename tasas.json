@@ -1,1 +1,10 @@
-[]
+[
+    {
+        "bank": "Bybit P2P",
+        "precio": "Error Bybit: 404"
+    },
+    {
+        "bank": "Yadio API",
+        "precio": "Sin se\u00f1al Yadio: 'price'"
+    }
+]
