@@ -31,6 +31,6 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add tasas.json
-          git commit -m "Actualización de tasas automatizada" || echo "Sin cambios para guardar"
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
+          git add -A
+          git commit -m "Actualización forzada de tasas" || echo "No hay cambios"
+          git push origin main
