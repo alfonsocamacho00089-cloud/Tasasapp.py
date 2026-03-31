@@ -1,40 +1,264 @@
+
+import requests
+
+
+
 import json
-import os
-from datetime import datetime
-from pyDolarVenezuela import Monitor
 
-def obtener_datos_venezuela():
+
+
+import datetime
+
+
+
+
+
+
+
+# Configuración de Headers para evitar bloqueos
+
+
+
+HEADERS = {
+
+
+
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+
+
+
+    "Content-Type": "application/json",
+
+
+
+    "Referer": "https://m.bybit.com/",
+
+
+
+    "Origin": "https://m.bybit.com"
+
+
+
+}
+
+
+
+
+
+
+
+def obtener_bybit():
+
+
+
+    url = "https://api2.bybit.com/fiat/otc/item/list"
+
+
+
+    # Lógica similar a Binance pero con parámetros de Bybit
+
+
+
+    payload = {
+
+
+
+        "userId": "",
+
+
+
+        "tokenId": "USDT",
+
+
+
+        "currencyId": "VES",
+
+
+
+        "payment": ["Banesco"],
+
+
+
+        "side": "1", # 1 es vender USDT (para obtener el precio que pagan los compradores)
+
+
+
+        "size": "1",
+
+
+
+        "page": "1",
+
+
+
+        "authMaker": "true"
+
+
+
+    }
+
+
+
     try:
-        monitor = Monitor()
-        data = monitor.get_all_monitors()
-        
-        # Sacamos los precios
-        bybit = data.get('bybit', {}).get('price', "N/A")
-        yadio = data.get('yadio', {}).get('price', "N/A")
-        bcv = data.get('bcv', {}).get('price', "N/A")
-        paralelo = data.get('enparalelovzla', {}).get('price', "N/A")
 
-        ahora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-        # Estructura de lista para tu calculadora
-        resultado = [
-            {"bank": "Bybit P2P", "precio": bybit, "fecha": ahora},
-            {"bank": "Yadio API", "precio": yadio, "fecha": ahora},
-            {"bank": "BCV Oficial", "precio": bcv, "fecha": ahora},
-            {"bank": "Paralelo", "precio": paralelo, "fecha": ahora}
-        ]
-        
-        # Forzamos la ruta absoluta para que GitHub no se pierda
-        ruta_archivo = os.path.join(os.getcwd(), 'tasas.json')
-        
-        with open(ruta_archivo, 'w', encoding='utf-8') as f:
-            json.dump(resultado, f, indent=4, ensure_ascii=False)
-            
-        print(f"✅ ARCHIVO CREADO EN: {ruta_archivo}")
-        print(f"✅ CONTENIDO: {resultado}") # Esto es para que lo veas en el log
-        
+
+        # Bybit suele usar POST o GET según la versión de API, esta es la de su web
+
+
+
+        response = requests.post(url, json=payload, headers=HEADERS, timeout=15)
+
+
+
+        if response.status_code == 200:
+
+
+
+            res_json = response.json()
+
+
+
+            return res_json['result']['items'][0]['price']
+
+
+
+        return f"Error Bybit: {response.status_code}"
+
+
+
     except Exception as e:
-        print(f"❌ ERROR CRÍTICO: {e}")
 
-if __name__ == "__main__":
-    obtener_datos_venezuela()
+
+
+        return f"Sin señal Bybit: {e}"
+
+
+
+
+
+
+
+def obtener_yadio():
+
+
+
+    # Yadio es más directo y no requiere payload complejo
+
+
+
+    url = "https://api.yadio.io/json/VES"
+
+
+
+    try:
+
+
+
+        response = requests.get(url, timeout=15)
+
+
+
+        if response.status_code == 200:
+
+
+
+            res_json = response.json()
+
+
+
+            # Usamos el precio de USDT
+
+
+
+            return res_json['USD']['price']
+
+
+
+        return f"Error Yadio: {response.status_code}"
+
+
+
+    except Exception as e:
+
+
+
+        return f"Sin señal Yadio: {e}"
+
+
+
+
+
+
+
+# --- EJECUCIÓN ---
+
+
+
+
+
+
+
+precio_bybit = obtener_bybit()
+
+
+
+precio_yadio = obtener_yadio()
+
+
+
+
+
+
+
+# Estructura del resultado
+
+
+
+resultado = [
+
+
+
+    {"bank": "Bybit P2P", "precio": precio_bybit},
+
+
+
+    {"bank": "Yadio API", "precio": precio_yadio}
+
+
+
+]
+
+
+
+
+
+
+
+# Guardar en tasas.json
+
+
+
+with open("tasas.json", "w") as f:
+
+
+
+    json.dump(resultado, f, indent=4)
+
+
+
+
+
+
+
+print(f"Actualizado con éxito: Bybit: {precio_bybit} | Yadio: {precio_yadio}")
+
+
+
+
+
+
+
+
+
+
