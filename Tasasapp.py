@@ -11,7 +11,7 @@ HEADERS = {
 }
 
 def obtener_bybit():
-    url ="https://api2.bybit.com/open/v1/otc/item/list"
+    url ="https://api2.bybit.com/fiat/otc/item/list"
     # Lógica similar a Binance pero con parámetros de Bybit
     payload = {
         "userId": "",
