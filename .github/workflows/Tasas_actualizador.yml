@@ -18,12 +18,13 @@ jobs:
       - name: Instalar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10' # Subimos a 3.10 para mejor compatibilidad
+          python-version: '3.10'
 
+      # AQUÍ EMPIEZA EL CAMBIO QUE ME PREGUNTASTE
       - name: Instalar Dependencias
         run: |
-          pip install requests
-          pip install -U pyDolarVenezuela  # El -U asegura que se actualice a la última versión
+          python -m pip install --upgrade pip
+          pip install requests pyDolarVenezuela
 
       - name: Correr Script P2P
         run: python Tasasapp.py
@@ -33,4 +34,4 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add tasas.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Tasas actualizadas" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Tasas actualizadas: $(date)" && git push)
