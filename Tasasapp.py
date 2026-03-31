@@ -1,7 +1,7 @@
 import requests
 import json
 
-def obtener_tasas_pydolar():
+
 def obtener_tasas_pydolar():
     # Esta es la URL directa de la data de CriptoDolar (la que usa pyDolar)
     url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=criptodolar"
