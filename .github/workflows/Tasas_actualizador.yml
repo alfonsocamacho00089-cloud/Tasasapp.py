@@ -1,0 +1,33 @@
+name: Actualizador de P2P Bybit y Yadio
+
+on:
+  schedule:
+    # Corre cada 18 minutos en el horario activo de Venezuela
+    - cron: '*/18 9-23,0-4 * * *'
+  workflow_dispatch: 
+
+jobs:
+  actualizar-p2p:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v3
+
+      - name: Instalar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Instalar Requests
+        run: pip install requests
+      
+      - name: Correr Script P2P
+        run: python P2papp.py
+
+      - name: Guardar cambios en el repo
+        run: |
+          git config --global user.name 'Robot-P2P-Multi'
+          git config --global user.email 'robot-p2p@github.com'
+          git add p2p.json
+          # Solo hace el commit si el archivo cambió realmente
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Bybit y Yadio actualizados" && git push)
