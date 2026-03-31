@@ -1,47 +1,58 @@
 import requests
 import json
-import datetime
 from pyDolarVenezuela import Monitor
 
-# Mantener tu lógica de Yadio original como respaldo
 def obtener_yadio_manual():
     url = "https://api.yadio.io/json/VES"
     try:
         response = requests.get(url, timeout=15)
         if response.status_code == 200:
             res_json = response.json()
-            return res_json['USD']['rate']
+            # Cambiado a 'rate' según tu corrección
+            return res_json['USD']['rate'] 
         return None
-    except Exception:
+    except Exception as e:
+        print(f"⚠️ Error manual en Yadio: {e}")
         return None
 
 def actualizar_todo():
-    # 1. Intentar obtener todo desde pyDolarVenezuela
-    try:
-        monitor = Monitor()
-        data_pydolar = monitor.get_all_monitors()
-    except Exception as e:
-        print(f"Error con pyDolarVenezuela: {e}")
-        data_pydolar = {}
-
-    # 2. Obtener Yadio con tu lógica (por si pydolar no carga o quieres asegurar ese dato)
-    yadio_respaldo = obtener_yadio_manual()
+    datos_finales = {}
     
-    # 3. Construir el diccionario final para el JSON
-    # Si pyDolar trae yadio, lo usamos; si no, usamos el manual
-    if yadio_respaldo and "yadio" not in data_pydolar:
-        data_pydolar["yadio"] = {"title": "Yadio API", "price": yadio_respaldo}
-    elif yadio_respaldo:
-        # Sobrescribimos el precio de yadio con tu función manual para mayor seguridad
-        data_pydolar["yadio"]["price"] = yadio_respaldo
-
-    # 4. Guardar en tasas.json con el formato que ya conoces
+    # 1. Intentar pyDolarVenezuela con reporte de error
     try:
-        with open('tasas.json', 'w', encoding='utf-8') as f:
-            json.dump(data_pydolar, f, indent=4, ensure_ascii=False)
-        print("✅ Tasas actualizadas correctamente en tasas.json")
+        print("Intentando cargar pyDolarVenezuela...")
+        monitor = Monitor()
+        datos_pydolar = monitor.get_all_monitors()
+        if datos_pydolar:
+            datos_finales = datos_pydolar
+            print("✅ pyDolarVenezuela cargado con éxito.")
     except Exception as e:
-        print(f"❌ Error al escribir el archivo: {e}")
+        # Esto te dirá en el log de GitHub por qué falló (falta de librería, error de red, etc.)
+        print(f"❌ Error crítico en pyDolarVenezuela: {e}")
+
+    # 2. Obtener Yadio (Tu lógica que ya probaste)
+    yadio_rate = obtener_yadio_manual()
+    
+    if yadio_rate:
+        # Lo insertamos o sobrescribimos en el diccionario
+        datos_finales["yadio"] = {
+            "title": "Yadio API",
+            "price": yadio_rate  # Guardamos como 'price' para mantener consistencia en tu JSON
+        }
+        print(f"✅ Yadio cargado: {yadio_rate}")
+    else:
+        print("⚠️ No se pudo obtener el dato de Yadio.")
+
+    # 3. Guardar el archivo pase lo que pase
+    if datos_finales:
+        try:
+            with open('tasas.json', 'w', encoding='utf-8') as f:
+                json.dump(datos_finales, f, indent=4, ensure_ascii=False)
+            print("💾 Archivo 'tasas.json' actualizado.")
+        except Exception as e:
+            print(f"❌ Error al escribir el JSON: {e}")
+    else:
+        print("🚫 No hay datos para guardar. El JSON no se actualizó.")
 
 if __name__ == "__main__":
     actualizar_todo()
