@@ -24,7 +24,6 @@ LISTA_HEADERS = [
 ]
 
 def obtener_bybit():
-def obtener_bybit():
     # Usamos el servicio de P2P-Libre que sirve como puente
     url = "https://p2p-libre.org/api/v1/bybit/ves"
     
@@ -43,8 +42,6 @@ def obtener_bybit():
         # Como última opción, si Bybit está imposible, 
         # usamos el precio de Yadio + un ajuste pequeño (que es lo que suele ser Bybit)
         return "Consultando respaldo..."
-
-    return "Bybit: Bloqueo total de identidades"
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
