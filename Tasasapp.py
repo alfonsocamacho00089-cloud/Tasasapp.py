@@ -1,70 +1,78 @@
 import requests
 import json
 
+# Headers para que Bybit no nos bloquee
+HEADERS_BYBIT = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+    "Content-Type": "application/json",
+    "Referer": "https://m.bybit.com/",
+    "Origin": "https://m.bybit.com"
+}
 
-
-def obtener_tasas_pydolar():
-    # URL actualizada a la v2 que es la que está activa
-    url = "https://pydolarve.org/api/v1/dollar?page=criptodolar"
-    
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+def obtener_bybit():
+    url = "https://api2.bybit.com/fiat/otc/item/list"
+    payload = {
+        "tokenId": "USDT",
+        "currencyId": "VES",
+        "payment": ["Banesco"],
+        "side": "1", # 1 es vender USDT (precio de compra en el mercado)
+        "size": "1",
+        "page": "1"
     }
-    
     try:
-        response = requests.get(url, headers=headers, timeout=20)
-        print(f"Status API: {response.status_code}")
-        
+        response = requests.post(url, json=payload, headers=HEADERS_BYBIT, timeout=20)
         if response.status_code == 200:
             res_json = response.json()
-            # En la v2, los datos vienen directo en 'monitors'
-            monitores = res_json.get('monitors', {})
-            if monitores:
-                print(f"✅ ¡ÉXITO! Se encontraron {len(monitores)} monitores.")
-                return monitores
-        
-        return {}
+            return res_json['result']['items'][0]['price']
+        return None
     except Exception as e:
-        print(f"❌ Error de conexión: {e}")
-        return {}
+        print(f"⚠️ Error Bybit: {e}")
+        return None
 
-def obtener_yadio_manual():
+def obtener_yadio():
     url = "https://api.yadio.io/json/VES"
     try:
-        response = requests.get(url, timeout=15)
+        response = requests.get(url, timeout=20)
         if response.status_code == 200:
             res_json = response.json()
+            # Usamos 'rate' como descubriste que era lo correcto
             return res_json['USD']['rate']
         return None
     except Exception as e:
-        print(f"⚠️ Error manual en Yadio: {e}")
+        print(f"⚠️ Error Yadio: {e}")
         return None
 
 def actualizar_todo():
-    # 1. Obtenemos los datos de la página de pyDolar vía API
-    print("Consultando API de pyDolar...")
-    datos_finales = obtener_tasas_pydolar()
+    datos_finales = {}
 
-    # 2. Obtenemos Yadio (Tu respaldo)
-    yadio_rate = obtener_yadio_manual()
-    
-    if yadio_rate:
+    # 1. Obtener Bybit
+    precio_bybit = obtener_bybit()
+    if precio_bybit:
+        datos_finales["bybit"] = {
+            "title": "Bybit P2P",
+            "price": precio_bybit
+        }
+        print(f"✅ Bybit cargado: {precio_bybit}")
+
+    # 2. Obtener Yadio
+    precio_yadio = obtener_yadio()
+    if precio_yadio:
         datos_finales["yadio"] = {
             "title": "Yadio API",
-            "price": yadio_rate
+            "price": precio_yadio
         }
-        print(f"✅ Yadio cargado: {yadio_rate}")
+        print(f"✅ Yadio cargado: {precio_yadio}")
 
-    # 3. Guardar el archivo tasas.json
+    # 3. Guardar el archivo
     if datos_finales:
         try:
             with open('tasas.json', 'w', encoding='utf-8') as f:
                 json.dump(datos_finales, f, indent=4, ensure_ascii=False)
             print("💾 Archivo 'tasas.json' actualizado con éxito.")
-        except Exception as e:
-            print(f"❌ Error al escribir el JSON: {e}")
+        else:
+            print("❌ Error al escribir el archivo.")
     else:
-        print("🚫 No se obtuvieron datos de ninguna fuente.")
+        print("🚫 No se pudo obtener ninguna tasa.")
 
 if __name__ == "__main__":
     actualizar_todo()
