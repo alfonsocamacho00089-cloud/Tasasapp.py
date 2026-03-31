@@ -37,10 +37,13 @@ def actualizar_todo():
             }
         
         # 5. Guardar en el archivo
-        with open('tasas.json', 'w', encoding='utf-8') as f:
+        import os
+        ruta_archivo = 'tasas.json'
+        with open(ruta_archivo, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
             
-        print("✅ Tasas actualizadas correctamente.")
+        print(f"✅ Tasas actualizadas correctamente.")
+        print(f"📁 Archivo guardado en: {os.path.abspath(ruta_archivo)}")
         
         # Debug para GitHub Actions
         bcv = data.get('bcv', {}).get('price', 'N/A')
