@@ -6,8 +6,9 @@ import datetime
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
     "Content-Type": "application/json",
-    "Referer": "https://www.bybit.com/fiat/trade/otc/USDT/VES/item-list",
+    "Referer": "https://www.bybit.com/",
     "Origin": "https://www.bybit.com"
+    
 }
 
 def obtener_bybit():
