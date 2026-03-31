@@ -69,9 +69,9 @@ def actualizar_todo():
             with open('tasas.json', 'w', encoding='utf-8') as f:
                 json.dump(datos_finales, f, indent=4, ensure_ascii=False)
             print("💾 Archivo 'tasas.json' actualizado con éxito.")
-        else:
+            else:
             print("❌ Error al escribir el archivo.")
-    else:
+       else:
         print("🚫 No se pudo obtener ninguna tasa.")
 
 if __name__ == "__main__":
