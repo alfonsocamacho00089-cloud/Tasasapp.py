@@ -1,4 +1,3 @@
-import requests
 import json
 from pyDolarVenezuela.pages import Monitor
 
