@@ -1,7 +1,7 @@
 import requests
 import json
 import datetime
-from pyDolarVenezuela.pages import Monitor
+from pyDolarVenezuela import Monitor
 
 def obtener_yadio_manual():
     """Función de respaldo que siempre se ejecutará para Yadio"""
