@@ -1,6 +1,6 @@
 import requests
 import json
-from pyDolarVenezuela.pages import Monitor
+from pyDolarVenezuela import Monitor
 
 # Mantener Headers para Yadio
 HEADERS = {
