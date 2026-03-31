@@ -23,30 +23,19 @@ LISTA_HEADERS = [
     }
 ]
 
+
 def obtener_bybit():
-    # Intentamos con PyDolar que es la más estable para P2P en Venezuela
-    url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=cripto"
-    
     try:
-        response = requests.get(url, timeout=15)
+        # Usamos la web de ExchangeMonitor que siempre tiene el P2P Bybit al día
+        url = "https://exchangemonitor.net/dolar-venezuela"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get(url, headers=headers, timeout=10)
+        
         if response.status_code == 200:
-            datos = response.json()
-            # Intentamos sacar Bybit, y si Bybit no reportó, sacamos Binance 
-            # (Binance es el estándar del mercado P2P, no es un invento)
-            monedas = datos.get('monedas', {})
-            
-            if 'bybit' in monedas:
-                return monedas['bybit']['price']
-            elif 'binance' in monedas:
-                return monedas['binance']['price']
-        
-        # Si llegamos aquí es porque la API respondió pero no traía datos
-        return "Error: Datos P2P no disponibles"
-        
-    except Exception as e:
-        # Aquí no hay números fijos. Si falla, el JSON dirá que no hay conexión.
-        return f"Error de conexión real: {str(e)[:20]}"
-        
+            # Buscamos el texto de Bybit en el código de la página
+            # Esto es "sucio" pero efectivo cuando las APIs fallan
+            import re
+            #
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
