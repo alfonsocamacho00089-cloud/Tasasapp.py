@@ -11,18 +11,34 @@ HEADERS = {
 }
 
 def obtener_bybit():
-    url ="https://api2.bybit.com/fiat/otc/item/list"
-    # Lógica similar a Binance pero con parámetros de Bybit
-    payload = {
-        "userId": "",
+def obtener_bybit():
+    # Nueva URL para peticiones GET (más estable)
+    url = "https://api2.bybit.com/fiat/otc/item/list"
+    
+    # Parámetros para la URL
+    params = {
         "tokenId": "USDT",
         "currencyId": "VES",
-        "payment": ["Banesco"],
-        "side": "1", # 1 es vender USDT (para obtener el precio que pagan los compradores)
+        "payment": "9", # 9 suele ser el ID de Banesco en Bybit
+        "side": "1",
         "size": "1",
         "page": "1",
-        "authMaker": "true"
+        "authMaker": "false",
+        "canTrade": "false"
     }
+    
+    try:
+        # Cambiamos .post por .get
+        response = requests.get(url, params=params, headers=HEADERS, timeout=15)
+        
+        if response.status_code == 200:
+            res_json = response.json()
+            # Accedemos a la estructura de la respuesta
+            return res_json['result']['items'][0]['price']
+        
+        return f"Error Bybit: {response.status_code}"
+    except Exception as e:
+        return f"Sin señal Bybit: {e}"
     try:
         # Bybit suele usar POST o GET según la versión de API, esta es la de su web
         response = requests.post(url, json=payload, headers=HEADERS, timeout=15)
