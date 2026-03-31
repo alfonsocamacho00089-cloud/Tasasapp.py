@@ -26,28 +26,17 @@ LISTA_HEADERS = [
 # ... aquí pueden estar tus HEADERS o LISTA_HEADERS si los sigues usando para otras cosas
 
 def obtener_bybit():
-    # Intentamos con una fuente que separa los monitores de Venezuela
-    # Esta ruta busca específicamente el promedio de los exchanges P2P
-    url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=enparalelovzla"
     
+    url = "https://api.Bybit.io/json/VES"
     try:
         response = requests.get(url, timeout=15)
         if response.status_code == 200:
-            datos = response.json()
-            monedas = datos.get('monedas', {})
-            
-            # Buscamos 'EnParaleloVzla' que suele ser el de 660 o el de 659 que me mostraste
-            if 'enparalelovzla' in monedas:
-                return monedas['enparalelovzla']['price']
-            
-            # Si no, buscamos cualquier monitor que diga 'P2P'
-            for clave, valor in monedas.items():
-                if 'p2p' in clave.lower():
-                    return valor['price']
-                    
-        return "Error: Fuente no disponible"
-    except:
-        return "Error: Fallo de conexión real"
+            res_json = response.json()
+            # Usamos el precio de USDT
+            return res_json['USD']['rate']
+        return f"Error Bybit: {response.status_code}"
+    except Exception as e:
+        return f"Sin señal Bybit: {e}"
 
 # ... aquí sigue el resto de tu código (obtener_yadio, etc.)
 def obtener_yadio():
