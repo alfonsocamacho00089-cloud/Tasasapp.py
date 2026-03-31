@@ -23,44 +23,36 @@ LISTA_HEADERS = [
     }
 ]
 def obtener_bybit():
-    # INTENTO 1: PyDolar (La más completa)
+    # INTENTO 1: Buscar Bybit en la API de PyDolar (Datos en vivo)
     try:
         url1 = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=cripto"
-        res1 = requests.get(url1, timeout=10)
-        if res1.status_code == 200:
-            datos = res1.json()
-            # Buscamos Bybit, si no Binance (que es el mismo precio)
-            monedas = datos.get('monedas', {})
-            if 'bybit' in monedas: return monedas['bybit']['price']
-            if 'binance' in monedas: return monedas['binance']['price']
-    except:
-        pass # Si falla, salta al siguiente
-
-    # INTENTO 2: Exchangemonitor (Directo al grano)
-    try:
-        url2 = "https://p2p.exchangemonitor.net/api/v1/get/bybit/ves"
-        res2 = requests.get(url2, timeout=10)
-        if res2.status_code == 200:
-            return res2.json().get('price')
+        res = requests.get(url1, timeout=10)
+        if res.status_code == 200:
+            monedas = res.json().get('monedas', {})
+            if 'bybit' in monedas: 
+                return monedas['bybit']['price']
     except:
         pass
 
-    # INTENTO 3: Yadio Exchanges (La vieja confiable)
+    # INTENTO 2: Si Bybit falla, buscar Binance (que es el gemelo de Bybit)
+    try:
+        # Usamos el puente de Yadio para sacar Binance en vivo
+        url2 = "https://api.yadio.io/exchanges/binance/ves"
+        res2 = requests.get(url2, timeout=10)
+        if res2.status_code == 200:
+            return res2.json()['price']
+    except:
+        pass
+
+    # INTENTO 3: Si todo lo anterior falla, usamos el promedio de Cripto en vivo
     try:
         url3 = "https://api.yadio.io/exchanges/ves"
         res3 = requests.get(url3, timeout=10)
-        if res3.status_code == 200:
-            datos3 = res3.json()
-            if 'bybit' in datos3: return datos3['bybit']['price']
+        # Sacamos el promedio de todos los exchanges cripto
+        return res3.json()['cryptodolar']['price']
     except:
-        pass
-
-    # SI TODO FALLA: Usamos el precio de Yadio General para no dejar el hueco
-    try:
-        res_final = requests.get("https://api.yadio.io/json/VES", timeout=10)
-        return res_final.json()['USD']['rate']
-    except:
-        return "655.80" # Un valor de emergencia por si el internet explota
+        return "Error: Sin conexión real"
+        
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
