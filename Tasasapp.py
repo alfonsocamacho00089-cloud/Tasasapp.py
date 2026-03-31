@@ -22,7 +22,7 @@ LISTA_HEADERS = [
         "Origin": "https://m.bybit.com"
     }
 ]
-def obtener_bybit():
+
 def obtener_bybit():
     # Intentamos con PyDolar que es la más estable para P2P en Venezuela
     url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=cripto"
