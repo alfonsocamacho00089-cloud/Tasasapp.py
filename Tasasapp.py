@@ -1,69 +1,62 @@
-import streamlit as st
 import requests
+import json
 import datetime
-import re
 
-st.set_page_config(page_title="Antena Telegram", page_icon="📲")
-st.title("📲 Antena: Señal Telegram (Paralelo)")
+# Configuración de Headers para evitar bloqueos
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+    "Content-Type": "application/json"
+}
 
-# --- FUNCIÓN PARA EXTRAER DE TELEGRAM (MÉTODO PÚBLICO) ---
-
-def obtener_precio_telegram(canal):
-    """
-    Lee la vista pública de un canal de Telegram y busca el patrón de precio.
-    Canales comunes: 'monitordolarvla', 'enparalelovzla', etc.
-    """
+def obtener_bybit():
+    url = "https://api2.bybit.com/fiat/otc/item/list"
+    # Lógica similar a Binance pero con parámetros de Bybit
+    payload = {
+        "userId": "",
+        "tokenId": "USDT",
+        "currencyId": "VES",
+        "payment": ["Banesco"],
+        "side": "1", # 1 es vender USDT (para obtener el precio que pagan los compradores)
+        "size": "1",
+        "page": "1",
+        "authMaker": "true"
+    }
     try:
-        # Usamos la vista web pública de Telegram (no necesita API de Bot)
-        url = f"https://t.me/s/{canal}"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-        res = requests.get(url, headers=headers, timeout=15)
-        
-        if res.status_code == 200:
-            # Buscamos números que parezcan precios (ejemplo: 39,45 o 40.10)
-            # Buscamos el último mensaje que contenga "Bs" o decimales
-            texto = res.text
-            # Esta expresión busca números con coma o punto seguidos de "Bs"
-            encontrados = re.findall(r"(\d+[\.,]\d+)\s?Bs", texto)
-            
-            if encontrados:
-                # El último precio publicado suele ser el final de la lista
-                precio_raw = encontrados[-1].replace(",", ".")
-                return round(float(precio_raw), 2)
-        return "Buscando..."
-    except:
-        return "Sin señal"
+        # Bybit suele usar POST o GET según la versión de API, esta es la de su web
+        response = requests.post(url, json=payload, headers=HEADERS, timeout=15)
+        if response.status_code == 200:
+            res_json = response.json()
+            return res_json['result']['items'][0]['price']
+        return f"Error Bybit: {response.status_code}"
+    except Exception as e:
+        return f"Sin señal Bybit: {e}"
+
+def obtener_yadio():
+    # Yadio es más directo y no requiere payload complejo
+    url = "https://api.yadio.io/json/VES"
+    try:
+        response = requests.get(url, timeout=15)
+        if response.status_code == 200:
+            res_json = response.json()
+            # Usamos el precio de USDT
+            return res_json['USD']['price']
+        return f"Error Yadio: {response.status_code}"
+    except Exception as e:
+        return f"Sin señal Yadio: {e}"
 
 # --- EJECUCIÓN ---
 
-# Probamos con dos canales populares que reportan Bybit y Paralelo
-p_monitor = obtener_precio_telegram("monitordolarvla")
-p_bybit_tele = obtener_precio_telegram("EnParaleloVzlaVip") # Ejemplo de canal
+precio_bybit = obtener_bybit()
+precio_yadio = obtener_yadio()
 
-hora_actual = (datetime.datetime.now() - datetime.timedelta(hours=4)).strftime("%I:%M:%S %p")
+# Estructura del resultado
+resultado = [
+    {"bank": "Bybit P2P", "precio": precio_bybit},
+    {"bank": "Yadio API", "precio": precio_yadio}
+]
 
-st.subheader("📊 Precios extraídos de Telegram")
-col1, col2 = st.columns(2)
+# Guardar en tasas.json
+with open("tasas.json", "w") as f:
+    json.dump(resultado, f, indent=4)
 
-with col1:
-    st.metric("Monitor Paralelo", f"{p_monitor} Bs")
-    st.caption("Fuente: @monitordolarvla")
-
-with col2:
-    st.metric("Bybit/P2P Ref", f"{p_bybit_tele} Bs")
-    st.caption("Fuente: @EnParaleloVzla")
-
-# --- GUARDADO ---
-info_tele = f"{p_monitor}|{p_bybit_tele}"
-
-# Solo guardamos si capturó números reales
-if isinstance(p_monitor, float):
-    with open("tasa.txt", "w") as f:
-        f.write(info_tele)
-    st.success(f"✅ ¡Señal de Telegram capturada!: {info_tele}")
-else:
-    st.warning("Telegram está tardando en responder. Refresca la antena.")
-
-st.write(f"🕒 **Sincronizado:** {hora_actual}")
+print(f"Actualizado con éxito: Bybit: {precio_bybit} | Yadio: {precio_yadio}")
