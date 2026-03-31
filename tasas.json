@@ -1,10 +1,10 @@
 [
     {
         "bank": "Bybit P2P",
-        "precio": "Error conexi\u00f3n: name 'HEADERS' is not defined"
+        "precio": "Bybit: Bloqueo total de identidades"
     },
     {
         "bank": "Yadio API",
-        "precio": 656.44
+        "precio": 656.43
     }
 ]
