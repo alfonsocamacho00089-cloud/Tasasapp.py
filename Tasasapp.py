@@ -2,29 +2,58 @@ import requests
 import json
 import datetime
 
-# Configuración de Headers para evitar bloqueos
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-    "Content-Type": "application/json",
-    "Referer": "https://m.bybit.com/",
-    "Origin": "https://m.bybit.com"
-}
+
+# Lista de diferentes identidades (Headers) para probar
+LISTA_HEADERS = [
+    {   # Identidad 1: Navegador Chrome estándar
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+        "Referer": "https://www.bybit.com/fiat/trade/otc/USDT/VES/item-list",
+        "Origin": "https://www.bybit.com"
+    },
+    {   # Identidad 2: Navegador Firefox (a veces más permisivo)
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+        "Accept": "application/json",
+        "Referer": "https://www.bybit.com/"
+    },
+    {   # Identidad 3: Simulación de App Móvil (La más "guerrera")
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1",
+        "Referer": "https://m.bybit.com/",
+        "Origin": "https://m.bybit.com"
+    }
+]
 
 def obtener_bybit():
-    # Nueva URL para peticiones GET (más estable)
-    url = "https://api2.bybit.com/fiat/otc/item/list"
+    rutas = [
+        "https://api2.bybit.com/fiat/otc/item/list",
+        "https://api2.bybit.com/open/v1/otc/item/list"
+    ]
     
-    # Parámetros para la URL
     params = {
-        "tokenId": "USDT",
-        "currencyId": "VES",
-        "payment": "9", # 9 suele ser el ID de Banesco en Bybit
-        "side": "1",
-        "size": "1",
-        "page": "1",
-        "authMaker": "false",
-        "canTrade": "false"
+        "tokenId": "USDT", "currencyId": "VES", "side": "1", 
+        "size": "1", "page": "1", "payment": ["9"],
+        "authMaker": "false", "canTrade": "false"
     }
+
+    for url in rutas:
+        for h in LISTA_HEADERS: # <--- Probamos cada identidad
+            try:
+                response = requests.get(url, params=params, headers=h, timeout=10)
+                
+                if response.status_code == 200:
+                    res_json = response.json()
+                    if 'result' in res_json and res_json['result']['items']:
+                        precio = res_json['result']['items'][0]['price']
+                        print(f"✅ ¡Éxito! Ruta: {url} | User-Agent: {h['User-Agent'][:30]}...")
+                        return precio
+                
+                print(f"❌ Falló {url} con Status {response.status_code}")
+                
+            except Exception as e:
+                print(f"⚠️ Error en intento: {e}")
+                continue
+
+    return "Error: Bybit sigue bloqueando"
     
     try:
         # Cambiamos .post por .get
