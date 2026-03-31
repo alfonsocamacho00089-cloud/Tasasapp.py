@@ -1,10 +1,10 @@
 [
     {
         "bank": "Bybit P2P",
-        "precio": 655.79
+        "precio": "Error: Sin conexi\u00f3n real"
     },
     {
         "bank": "Yadio API",
-        "precio": 655.79
+        "precio": 655.78
     }
 ]
