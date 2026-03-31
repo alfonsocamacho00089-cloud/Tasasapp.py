@@ -25,7 +25,7 @@ LISTA_HEADERS = [
 
 def obtener_bybit():
     # Esta es la URL exacta que Yadio usa para mostrar los precios de exchanges
-    url = "https://api.yadio.io/exchanges/ves" 
+    url = "https://api.yadio.io/json/VES"
     try:
         response = requests.get(url, timeout=15)
         if response.status_code == 200:
