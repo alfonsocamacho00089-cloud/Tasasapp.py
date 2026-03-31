@@ -1,10 +1,10 @@
 [
     {
         "bank": "Bybit P2P",
-        "precio": "Error Bybit: 404"
+        "precio": "Error: Bybit sigue bloqueando"
     },
     {
         "bank": "Yadio API",
-        "precio": 656.33
+        "precio": 656.31
     }
 ]
