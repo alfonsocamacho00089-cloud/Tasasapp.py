@@ -27,10 +27,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests pyDolarVenezuela
       
-      - name: Correr Script P2P
+       - name: Correr Script P2P
         run: python Tasasapp.py
-        
-       
           
        - name: Guardar cambios en el repo
         run: |
