@@ -1,7 +1,7 @@
 import requests
 import json
 import datetime
-from pyDolarVenezuela.pages import Monitor
+from pyDolarVenezuela import Monitor
 
 # Mantener tu lógica de Yadio original como respaldo
 def obtener_yadio_manual():
