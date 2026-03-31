@@ -1,7 +1,7 @@
 import requests
 import json
 import datetime
-
+import re
 
 # Lista de diferentes identidades (Headers) para probar
 LISTA_HEADERS = [
@@ -24,18 +24,28 @@ LISTA_HEADERS = [
 ]
 
 
+
+
+
 def obtener_bybit():
     try:
         # Usamos la web de ExchangeMonitor que siempre tiene el P2P Bybit al día
         url = "https://exchangemonitor.net/dolar-venezuela"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=10)
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        response = requests.get(url, headers=headers, timeout=15)
         
         if response.status_code == 200:
-            # Buscamos el texto de Bybit en el código de la página
-            # Esto es "sucio" pero efectivo cuando las APIs fallan
-            import re
-            #
+            # Buscamos el precio de Bybit dentro del código HTML de la página
+            # Buscamos la palabra Bybit seguida de un número con formato de moneda (ej: 656,04)
+            match = re.search(r'Bybit.*?(\d+,\d+)', response.text)
+            if match:
+                # Convertimos la coma en punto para que sea un número válido
+                precio = match.group(1).replace(',', '.')
+                return float(precio)
+                
+        return "Error: Web no legible"
+    except Exception as e:
+        return f"Fallo total: {str(e)[:15]}"
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
