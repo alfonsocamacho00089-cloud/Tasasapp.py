@@ -35,6 +35,7 @@ def obtener_bybit():
             # Buscamos el texto de Bybit en el código de la página
             # Esto es "sucio" pero efectivo cuando las APIs fallan
             import re
+            #
             
  def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
