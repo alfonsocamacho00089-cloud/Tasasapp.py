@@ -22,9 +22,6 @@ LISTA_HEADERS = [
         "Origin": "https://m.bybit.com"
     }
 ]
-
-
-def obtener_bybit():
 def obtener_bybit():
     # INTENTO 1: PyDolar (La más completa)
     try:
