@@ -1,29 +1,36 @@
 import requests
 import json
 
+def obtener_binance():
+    url = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
+    payload = {
+        "asset": "USDT",
+        "fiat": "VES",
+        "merchantCheck": False,
+        "page": 1,
+        "payTypes": ["Banesco"],
+        "publisherType": None,
+        "rows": 1,
+        "tradeType": "SELL" # SELL en la API muestra el precio al que tú compras
+    }
+    try:
+        response = requests.post(url, json=payload, timeout=20)
+        if response.status_code == 200:
+            res_json = response.json()
+            return res_json['data'][0]['adv']['price']
+    except: return None
+    return None
+
 def obtener_bybit():
     url = "https://api2.bybit.com/fiat/otc/item/list"
-    payload = {
-        "tokenId": "USDT",
-        "currencyId": "VES",
-        "payment": ["Banesco"],
-        "side": "1",
-        "size": "1",
-        "page": "1"
-    }
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-        "Content-Type": "application/json"
-    }
+    payload = {"tokenId": "USDT", "currencyId": "VES", "payment": ["Banesco"], "side": "1", "size": "1", "page": "1"}
+    headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/json"}
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=20)
         if response.status_code == 200:
-            res_json = response.json()
-            items = res_json.get('result', {}).get('items', [])
-            if items:
-                return items[0]['price']
-    except:
-        return None
+            items = response.json().get('result', {}).get('items', [])
+            if items: return items[0]['price']
+    except: return None
     return None
 
 def obtener_yadio():
@@ -31,38 +38,35 @@ def obtener_yadio():
     try:
         response = requests.get(url, timeout=20)
         if response.status_code == 200:
-            res_json = response.json()
-            # Usamos 'rate' que es el que te funcionó
-            return res_json.get('USD', {}).get('rate')
-    except:
-        return None
+            return response.json().get('USD', {}).get('rate')
+    except: return None
     return None
 
 def actualizar_todo():
     datos_finales = {}
     
-    # 1. Obtener Bybit
-    precio_bybit = obtener_bybit()
-    if precio_bybit:
-        datos_finales["bybit"] = {"title": "Bybit P2P", "price": precio_bybit}
-        print(f"✅ Bybit cargado: {precio_bybit}")
+    # Intentar obtener las 3
+    p_binance = obtener_binance()
+    p_bybit = obtener_bybit()
+    p_yadio = obtener_yadio()
 
-    # 2. Obtener Yadio
-    precio_yadio = obtener_yadio()
-    if precio_yadio:
-        datos_finales["yadio"] = {"title": "Yadio API", "price": precio_yadio}
-        print(f"✅ Yadio cargado: {precio_yadio}")
+    if p_binance:
+        datos_finales["binance"] = {"title": "Binance P2P", "price": float(p_binance)}
+        print(f"✅ Binance: {p_binance}")
 
-    # 3. Guardar el archivo tasas.json
+    if p_bybit:
+        datos_finales["bybit"] = {"title": "Bybit P2P", "price": float(p_bybit)}
+        print(f"✅ Bybit: {p_bybit}")
+
+    if p_yadio:
+        datos_finales["yadio"] = {"title": "Yadio API", "price": float(p_yadio)}
+        print(f"✅ Yadio: {p_yadio}")
+
+    # Guardar si hay algo
     if datos_finales:
-        try:
-            with open('tasas.json', 'w', encoding='utf-8') as f:
-                json.dump(datos_finales, f, indent=4, ensure_ascii=False)
-            print("💾 Archivo 'tasas.json' actualizado con éxito.")
-        except Exception as e:
-            print(f"❌ Error al escribir el archivo: {e}")
-    else:
-        print("🚫 No se pudo obtener ninguna tasa, el archivo no se actualizó.")
+        with open('tasas.json', 'w', encoding='utf-8') as f:
+            json.dump(datos_finales, f, indent=4, ensure_ascii=False)
+        print("💾 tasas.json actualizado con el Trío P2P.")
 
 if __name__ == "__main__":
     actualizar_todo()
