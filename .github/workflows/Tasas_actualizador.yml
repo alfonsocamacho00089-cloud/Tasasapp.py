@@ -22,12 +22,12 @@ jobs:
         run: pip install requests
       
       - name: Correr Script P2P
-        run: python P2papp.py
+        run: python Tasasapp.py
 
       - name: Guardar cambios en el repo
         run: |
-          git config --global user.name 'Robot-P2P-Multi'
-          git config --global user.email 'robot-p2p@github.com'
-          git add p2p.json
+          git config --global user.name 'Robot-tasas-Multi'
+          git config --global user.email 'robot-tasas@github.com'
+          git add tasas.json
           # Solo hace el commit si el archivo cambió realmente
           git diff --quiet && git diff --staged --quiet || (git commit -m "Bybit y Yadio actualizados" && git push)
