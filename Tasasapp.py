@@ -1,41 +1,35 @@
 import json
-from pyDolarVenezuela.pages import Monitor
+from pyDolarVenezuela import Monitor
 
 def obtener_datos_venezuela():
-    """
-    Obtiene todas las tasas reales de Venezuela usando la librería especializada.
-    """
     try:
-        # Instanciamos el monitor
+        # La forma correcta en la versión actual es llamar a Monitor() directamente
         monitor = Monitor()
         
-        # Obtenemos todos los monitores de un solo golpe
+        # Obtenemos los datos (Bybit, Yadio, BCV, etc.)
+        # Nota: La librería usa 'enparalelovzla' para el paralelo
         data = monitor.get_all_monitors()
         
-        # Extraemos los precios reales (Si no existen, pone "N/A")
-        # pyDolar usa nombres específicos, estos son los correctos:
-        bybit_p2p = data.get('bybit', {}).get('price', "N/A")
-        yadio_api = data.get('yadio', {}).get('price', "N/A")
-        bcv_oficial = data.get('bcv', {}).get('price', "N/A")
+        # Extraemos los precios con pinzas
+        bybit = data.get('bybit', {}).get('price', "N/A")
+        yadio = data.get('yadio', {}).get('price', "N/A")
+        bcv = data.get('bcv', {}).get('price', "N/A")
         paralelo = data.get('enparalelovzla', {}).get('price', "N/A")
 
-        # Estructura limpia para tu calculadora
-        tasas_limpias = [
-            {"bank": "Bybit P2P", "precio": bybit_p2p},
-            {"bank": "Yadio API", "precio": yadio_api},
-            {"bank": "BCV Oficial", "precio": bcv_oficial},
+        resultado = [
+            {"bank": "Bybit P2P", "precio": bybit},
+            {"bank": "Yadio API", "precio": yadio},
+            {"bank": "BCV Oficial", "precio": bcv},
             {"bank": "Paralelo", "precio": paralelo}
         ]
         
-        # Guardamos en el JSON (sobrescribe lo viejo con datos reales)
         with open('tasas.json', 'w', encoding='utf-8') as f:
-            json.dump(tasas_limpias, f, indent=4, ensure_ascii=False)
+            json.dump(resultado, f, indent=4, ensure_ascii=False)
             
-        print(f"✅ ¡Éxito! Bybit: {bybit_p2p} | Yadio: {yadio_api}")
+        print(f"✅ ¡LISTO! Bybit: {bybit} | Paralelo: {paralelo}")
         
     except Exception as e:
-        print(f"❌ Error real en la actualización: {e}")
+        print(f"❌ Error en el último paso: {e}")
 
-# --- EJECUCIÓN ÚNICA ---
 if __name__ == "__main__":
     obtener_datos_venezuela()
