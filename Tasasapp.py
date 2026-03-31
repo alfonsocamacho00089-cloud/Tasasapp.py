@@ -2,6 +2,9 @@ import requests
 import json
 import datetime
 import re
+from pyDolarVenezuela.pages 
+import Monitor
+
 
 # Lista de diferentes identidades (Headers) para probar
 LISTA_HEADERS = [
@@ -25,18 +28,43 @@ LISTA_HEADERS = [
 
 # ... aquí pueden estar tus HEADERS o LISTA_HEADERS si los sigues usando para otras cosas
 
-def obtener_bybit():
-    
-    url = "https://bybit.com"
+def obtener_datos_venezuela():
+    """
+    Usa la librería especializada para obtener todo de un solo golpe.
+    """
     try:
-        response = requests.get(url, timeout=15)
-        if response.status_code == 200:
-            res_json = response.json()
-            # Usamos el precio de USDT
-            return res_json['USD']['rate']
-        return f"Error Bybit: {response.status_code}"
+        # Instanciamos el monitor
+        monitor = Monitor()
+        
+        # Obtenemos todos los monitores (esto ya trae Bybit, Yadio, BCV, etc.)
+        data = monitor.get_all_monitors()
+        
+        # Extraemos lo que nos interesa con seguridad (si no existe, pone "N/A")
+        bybit_p2p = data.get('bybit', {}).get('price', "Error")
+        yadio_api = data.get('yadio', {}).get('price', "Error")
+        bcv_oficial = data.get('bcv', {}).get('price', "Error")
+        paralelo = data.get('enparalelovzla', {}).get('price', "Error")
+
+        # Creamos la lista con el formato que ya usa tu calculadora
+        tasas_limpias = [
+            {"bank": "Bybit P2P", "precio": bybit_p2p},
+            {"bank": "Yadio API", "precio": yadio_api},
+            {"bank": "BCV Oficial", "precio": bcv_oficial},
+            {"bank": "Paralelo", "precio": paralelo}
+        ]
+        
+        # Guardamos en el JSON
+        with open('tasas.json', 'w', encoding='utf-8') as f:
+            json.dump(tasas_limpias, f, indent=4, ensure_ascii=False)
+            
+        print("✅ Tasas actualizadas correctamente con pyDolarVenezuela")
+        
     except Exception as e:
-        return f"Sin señal Bybit: {e}"
+        print(f"❌ Error fatal en la integración: {e}")
+
+# Ejecutar la actualización
+if __name__ == "__main__":
+    obtener_datos_venezuela()
 
 # ... aquí sigue el resto de tu código (obtener_yadio, etc.)
 def obtener_yadio():
