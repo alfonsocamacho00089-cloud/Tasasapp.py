@@ -1,145 +1,44 @@
 name: Actualizador de P2P Bybit y Yadio
 
-
-
-
-
-
-
 on:
-
-
-
   schedule:
-
-
-
     # Corre cada 18 minutos en el horario activo de Venezuela
-
-
-
     - cron: '*/18 9-23,0-4 * * *'
-
-
-
   workflow_dispatch: 
 
-
-
-
-
-
-
 jobs:
-
-
-
   actualizar-p2p:
-
-
-
     runs-on: ubuntu-latest
-
-
-
-    # --- INSERTAR ESTAS LÍNEAS ---
-
-
-
+    
+    # --- ESTOS SON LOS PERMISOS CRUCIALES ---
     permissions:
-
-
-
-      contents: write
-
-
-
-    # ----------------------------
-
-
+      contents: write  # Permite al BOT escribir/modificar archivos en el repo
+    # ----------------------------------------
 
     steps:
-
-
-
       - name: Descargar código
-
-
-
-        uses: actions/checkout@v4 # Actualizado a v4
-
-
-
-
-
-
+        uses: actions/checkout@v4
 
       - name: Instalar Python
-
-
-
-        uses: actions/setup-python@v5 # Actualizado a v5
-
-
-
+        uses: actions/setup-python@v5
         with:
-
-
-
           python-version: '3.9'
 
-
-
-
-
-
-
-      - name: Instalar Requests
-
-
-
-        run: pip install requests
-
-
-
-      
-
-
+      - name: Instalar Dependencias
+        run: |
+          pip install requests
+          pip install pyDolarVenezuela  # Necesario para la nueva librería
 
       - name: Correr Script P2P
-
-
-
-        run: python Tasasapp.py
-
-
-
-
-
-
+        run: python Tasasapp.py  # Asegúrate que el archivo se llame exactamente así
 
       - name: Guardar cambios en el repo
-
-
-
         run: |
-
-
-
           git config --global user.name 'github-actions[bot]'
-
-
-
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-
-
+          
+          # Añadimos el archivo generado
           git add tasas.json
 
-
-
-
-
-
-
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Bybit y Yadio actualizados" && git push)
+          # Solo hace commit si hubo cambios reales para evitar errores
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Tasas actualizadas: pyDolar + Yadio" && git push)
