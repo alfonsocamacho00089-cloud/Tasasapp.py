@@ -1,7 +1,7 @@
 import requests
 import json
 from pyDolarVenezuela import Monitor
-# Quitamos la importación de provider que dio error
+from pyDolarVenezuela.providers import CriptoDolar # Importación específica del objeto
 
 def obtener_yadio_manual():
     url = "https://api.yadio.io/json/VES"
@@ -18,21 +18,21 @@ def obtener_yadio_manual():
 def actualizar_todo():
     datos_finales = {}
     
-    # 1. Intentar pyDolarVenezuela usando el nombre del proveedor como texto
+    # 1. Intentar pyDolarVenezuela con el OBJETO CriptoDolar
     try:
         print("Intentando cargar pyDolarVenezuela...")
-        # Probamos pasándole 'criptodolar' en minúsculas como string
-        # Si esto falla, la librería por defecto debería usar CriptoDolar si pones Monitor('criptodolar')
-        monitor = Monitor(provider='criptodolar') 
+        # Aquí le pasamos el objeto importado, NO un string
+        monitor = Monitor(CriptoDolar) 
         datos_pydolar = monitor.get_all_monitors()
         
         if datos_pydolar:
             datos_finales = datos_pydolar
             print("✅ pyDolarVenezuela cargado con éxito.")
     except Exception as e:
+        # Aquí verás si falta algún otro argumento o si la página está caída
         print(f"❌ Error crítico en pyDolarVenezuela: {e}")
 
-    # 2. Obtener Yadio
+    # 2. Obtener Yadio (Tu respaldo)
     yadio_rate = obtener_yadio_manual()
     
     if yadio_rate:
@@ -43,15 +43,12 @@ def actualizar_todo():
         print(f"✅ Yadio cargado: {yadio_rate}")
 
     # 3. Guardar el archivo
-    if datos_finales:
-        try:
-            with open('tasas.json', 'w', encoding='utf-8') as f:
-                json.dump(datos_finales, f, indent=4, ensure_ascii=False)
-            print("💾 Archivo 'tasas.json' actualizado.")
-        except Exception as e:
-            print(f"❌ Error al escribir el JSON: {e}")
-    else:
-        print("🚫 No se pudo recuperar ninguna tasa.")
+    try:
+        with open('tasas.json', 'w', encoding='utf-8') as f:
+            json.dump(datos_finales, f, indent=4, ensure_ascii=False)
+        print("💾 Archivo 'tasas.json' actualizado.")
+    except Exception as e:
+        print(f"❌ Error al escribir el JSON: {e}")
 
 if __name__ == "__main__":
     actualizar_todo()
