@@ -1,7 +1,7 @@
 import requests
 import json
-from pyDolarVenezuela.providers 
-import monitor
+pyDolarVenezuela.data import CriptoDolar
+from pyDolarVenezuela import monitor
 def obtener_yadio_manual():
     url = "https://api.yadio.io/json/VES"
     try:
