@@ -1,10 +1,10 @@
 [
     {
         "bank": "Bybit P2P",
-        "precio": "Sin se\u00f1al Bybit: HTTPSConnectionPool(host='api.bybit.io', port=443): Max retries exceeded with url: /json/VES (Caused by NameResolutionError(\"HTTPSConnection(host='api.bybit.io', port=443): Failed to resolve 'api.bybit.io' ([Errno -2] Name or service not known)\"))"
+        "precio": "Error Bybit: 403"
     },
     {
         "bank": "Yadio API",
-        "precio": 658.7
+        "precio": 658.33
     }
 ]
