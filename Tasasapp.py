@@ -1,9 +1,9 @@
 import requests
 import json
 
-# Configuración de Headers globales para evitar bloqueos
+# Headers reforzados para evitar bloqueos
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Accept": "application/json",
     "Content-Type": "application/json"
 }
@@ -29,19 +29,18 @@ def obtener_bybit():
         "size": "1", "page": "1"
     }
     try:
-        # Reforzamos Bybit con los mismos headers que Binance
+        # Bybit necesita los headers exactos para no dar 403
         response = requests.post(url, json=payload, headers=HEADERS, timeout=20)
         if response.status_code == 200:
             res_json = response.json()
             items = res_json.get('result', {}).get('items', [])
-            if items:
-                return items[0]['price']
+            return items[0]['price'] if items else None
     except: return None
 
 def obtener_yadio():
     url = "https://api.yadio.io/json/VES"
     try:
-        response = requests.get(url, timeout=20)
+        response = requests.get(url, headers=HEADERS, timeout=20)
         if response.status_code == 200:
             return response.json().get('USD', {}).get('rate')
     except: return None
@@ -49,11 +48,12 @@ def obtener_yadio():
 def actualizar_todo():
     datos_finales = {}
     
-    # Intentar obtener las 3 tasas
+    # Ejecutamos las consultas
     p_binance = obtener_binance()
     p_bybit = obtener_bybit()
     p_yadio = obtener_yadio()
 
+    # Solo agregamos si hay respuesta exitosa
     if p_binance:
         datos_finales["binance"] = {"title": "Binance P2P", "price": float(p_binance)}
         print(f"✅ Binance cargado: {p_binance}")
@@ -66,10 +66,11 @@ def actualizar_todo():
         datos_finales["yadio"] = {"title": "Yadio API", "price": float(p_yadio)}
         print(f"✅ Yadio cargado: {p_yadio}")
 
+    # Guardamos el archivo si conseguimos al menos una tasa
     if datos_finales:
         with open('tasas.json', 'w', encoding='utf-8') as f:
             json.dump(datos_finales, f, indent=4, ensure_ascii=False)
-        print("💾 Archivo 'tasas.json' actualizado con éxito.")
+        print("💾 Archivo 'tasas.json' actualizado.")
     else:
         print("🚫 No se pudo obtener ninguna tasa.")
 
