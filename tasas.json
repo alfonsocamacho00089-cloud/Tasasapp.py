@@ -1,10 +1,10 @@
 [
     {
         "bank": "Bybit P2P",
-        "precio": 657.04
+        "precio": "Error: Fuente no disponible"
     },
     {
         "bank": "Yadio API",
-        "precio": 657.04
+        "precio": 657.61
     }
 ]
