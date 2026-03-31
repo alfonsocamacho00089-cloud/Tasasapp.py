@@ -27,25 +27,32 @@ LISTA_HEADERS = [
 
 
 
+
+
+# ... aquí pueden estar tus HEADERS o LISTA_HEADERS si los sigues usando para otras cosas
+
 def obtener_bybit():
     try:
-        # Usamos la web de ExchangeMonitor que siempre tiene el P2P Bybit al día
+        # Usamos la web de ExchangeMonitor como fuente real
         url = "https://exchangemonitor.net/dolar-venezuela"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
         response = requests.get(url, headers=headers, timeout=15)
         
         if response.status_code == 200:
-            # Buscamos el precio de Bybit dentro del código HTML de la página
-            # Buscamos la palabra Bybit seguida de un número con formato de moneda (ej: 656,04)
+            # Buscamos el precio de Bybit dentro del código HTML
+            # Este patrón busca "Bybit" y luego el primer número con coma que encuentre cerca
             match = re.search(r'Bybit.*?(\d+,\d+)', response.text)
             if match:
-                # Convertimos la coma en punto para que sea un número válido
-                precio = match.group(1).replace(',', '.')
-                return float(precio)
+                # Convertimos la coma en punto para que Python lo trate como número
+                precio_texto = match.group(1).replace(',', '.')
+                return float(precio_texto)
                 
         return "Error: Web no legible"
     except Exception as e:
+        # Si falla (por ejemplo, timeout), te dirá qué pasó sin inventar números
         return f"Fallo total: {str(e)[:15]}"
+
+# ... aquí sigue el resto de tu código (obtener_yadio, etc.)
 def obtener_yadio():
     # Yadio es más directo y no requiere payload complejo
     url = "https://api.yadio.io/json/VES"
