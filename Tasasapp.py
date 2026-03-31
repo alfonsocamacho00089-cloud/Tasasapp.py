@@ -22,7 +22,7 @@ def actualizar_todo():
     try:
         # 1. Obtenemos datos de pyDolarVenezuela (BCV, Paralelo, Bybit, etc.)
         monitor = Monitor()
-        data = monitor.get_all_monitors()
+
         
         # 2. Obtenemos Yadio manualmente (tu función original)
         precio_yadio = obtener_yadio()
@@ -34,6 +34,9 @@ def actualizar_todo():
                 "title": "Yadio API",
                 "price": precio_yadio
             }
+        # Obtenemos los datos y los convertimos a un formato que JSON sí entienda
+        monitores = monitor.get_all_monitors()
+        data = {k: (v.to_dict() if hasattr(v, 'to_dict') else v) for k, v in monitores.items()}
 
         # 4. Guardamos en tasas.json con el formato que ya conoces
         with open('tasas.json', 'w', encoding='utf-8') as f:
