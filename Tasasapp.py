@@ -14,7 +14,7 @@ def obtener_bybit():
     url = "https://api2.bybit.com/fiat/otc/item/list"
     payload = {
         "tokenId": "USDT", "currencyId": "VES", 
-        "payment": ["Banesco"], "side": "1", 
+        "payment": ["Banesco"], "side": "0", 
         "size": "1", "page": "1"
     }
     try:
