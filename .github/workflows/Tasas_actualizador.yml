@@ -2,7 +2,8 @@ name: Actualizador de Tasas Multi-Fuente
 
 on:
   schedule:
-    - cron:  * * *'
+    # Corre cada 18 min en bloques horarios específicos
+    - cron: '*/18 9-23,0-4 * * *'
   workflow_dispatch: 
 
 jobs:
@@ -24,11 +25,12 @@ jobs:
           pip install requests 
       
       - name: Correr Script de Tasas
-        run: python .py
+        run: python Tasasapp.py  # <-- ASEGÚRATE QUE TU ARCHIVO SE LLAME ASÍ
 
       - name: Guardar cambios en el repo
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add tasas.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Tasas actualizadas (pyDolar + Yadio)" && git push)
+          # Commit solo si hay cambios reales para evitar spam en el historial
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Tasas actualizadas: $(date)" && git push)
