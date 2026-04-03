@@ -14,21 +14,26 @@ HEADERS = {
 }
 
 def enviar_alerta_telegram(mensaje):
+def enviar_alerta_telegram(mensaje):
     url = f"https://api.telegram.org/bot{TOKEN_BOT}/sendMessage"
     
-    # Creamos un tablero de botones con las 4 fuentes del script
+    # Estos links son más directos y estables para Bybit USDT
     payload = {
         "chat_id": MI_CHAT_ID,
         "text": mensaje,
         "reply_markup": {
             "inline_keyboard": [
                 [
-                    {"text": "🥇 CriptoDólar (Bybit)", "url": "https://criptodolar.net/cotizacion/dolar/p2p/bybit"},
-                    {"text": "🥈 Monitor Dólar", "url": "https://monitordolarvenezuela.com/"}
+                    # Este link suele saltarse mejor los bloqueos
+                    {"text": "🚀 BYBIT USDT (Directo)", "url": "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?monitor=bybit"},
                 ],
                 [
-                    {"text": "🥉 DolarToday", "url": "https://dolartoday.com/"},
-                    {"text": "📊 BCV (Oficial)", "url": "https://www.bcv.org.ve/"}
+                    # Una alternativa que siempre carga
+                    {"text": "📊 Ver en Telegram (DolarToday)", "url": "https://t.me/DolarToday"}
+                ],
+                [
+                    # Tu propia App para que entres a actualizarla
+                    {"text": "🏠 Ir a mi App TuPropina", "url": "https://alfonsocamacho00089.github.io/TuPropina/"}
                 ]
             ]
         }
@@ -36,7 +41,8 @@ def enviar_alerta_telegram(mensaje):
     try:
         requests.post(url, json=payload, timeout=10)
     except:
-        print("❌ Error al enviar el menú de botones.")
+        print("❌ Error al enviar el menú.")
+        
 def barrido_total():
     fuentes = [
         {"n": "CriptoDolar", "u": "https://api.monedasvenezuela.com/v1/dollar/criptodolar", "p": ["price"]},
