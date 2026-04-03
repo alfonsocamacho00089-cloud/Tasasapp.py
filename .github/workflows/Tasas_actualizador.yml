@@ -2,7 +2,7 @@ name: Actualizador de Tasas Multi-Fuente
 
 on:
   schedule:
-    - cron: '*/18 9-23,0-4 * * *'
+    - cron:  * * *'
   workflow_dispatch: 
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
           pip install requests 
       
       - name: Correr Script de Tasas
-        run: python Tasasapp.py
+        run: python .py
 
       - name: Guardar cambios en el repo
         run: |
