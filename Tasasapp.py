@@ -15,12 +15,28 @@ HEADERS = {
 
 def enviar_alerta_telegram(mensaje):
     url = f"https://api.telegram.org/bot{TOKEN_BOT}/sendMessage"
-    payload = {"chat_id": MI_CHAT_ID, "text": mensaje}
+    
+    # Creamos un tablero de botones con las 4 fuentes del script
+    payload = {
+        "chat_id": MI_CHAT_ID,
+        "text": mensaje,
+        "reply_markup": {
+            "inline_keyboard": [
+                [
+                    {"text": "🥇 CriptoDólar (Bybit)", "url": "https://criptodolar.net/cotizacion/dolar/p2p/bybit"},
+                    {"text": "🥈 Monitor Dólar", "url": "https://monitordolarvenezuela.com/"}
+                ],
+                [
+                    {"text": "🥉 DolarToday", "url": "https://dolartoday.com/"},
+                    {"text": "📊 BCV (Oficial)", "url": "https://www.bcv.org.ve/"}
+                ]
+            ]
+        }
+    }
     try:
         requests.post(url, json=payload, timeout=10)
     except:
-        print("❌ No se pudo enviar la alerta a Telegram.")
-
+        print("❌ Error al enviar el menú de botones.")
 def barrido_total():
     fuentes = [
         {"n": "CriptoDolar", "u": "https://api.monedasvenezuela.com/v1/dollar/criptodolar", "p": ["price"]},
