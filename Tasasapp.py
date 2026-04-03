@@ -1,49 +1,41 @@
 import requests
 import json
 
-# Headers de un navegador real de Android (para que parezca que entras desde el cel)
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.6261.119 Mobile Safari/537.36",
-    "Referer": "https://www.google.com/"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 }
 
-def obtener_bybit_secreto():
-    # RUTA A: El "Espejo" de ExchangeMonitor (Muy resistente)
-    # Esta URL extrae los datos procesados de varios monitores
-    url_mirror = "https://api.exchangemonitor.net/all" 
+def obtener_tasa_maestra():
+    # Esta es la API de Monitor Dolar Venezuela (Súper estable)
+    url = "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?monitor=all"
     
-    # RUTA B: CriptoDolar (API alternativa que rara vez bloquea)
-    url_cripto = "https://api.monedasvenezuela.com/v1/dollar/criptodolar"
-
     try:
-        print("🕵️ Intentando entrar por el espejo de ExchangeMonitor...")
-        r = requests.get(url_mirror, headers=HEADERS, timeout=15)
+        print("🕵️ Buscando en el Monitor Maestro...")
+        r = requests.get(url, headers=HEADERS, timeout=15)
         if r.status_code == 200:
-            # Buscamos la sección de Bybit dentro de su respuesta masiva
             data = r.json()
-            # A veces viene como 'bybit' o dentro de 'cripto'
-            precio = data.get('bybit', {}).get('price')
-            if precio: return precio
-
-        print("🕵️ Intentando por CriptoDolar...")
-        r = requests.get(url_cripto, headers=HEADERS, timeout=15)
-        if r.status_code == 200:
-            return r.json().get('price')
+            # Intentamos sacar Bybit específicamente
+            monitores = data.get('monitors', {})
+            
+            # Buscamos en 'bybit' o 'enparalelovzla' como respaldo
+            bybit = monitores.get('bybit', {}).get('price')
+            if bybit: return bybit
+            
+            # Si Bybit no está, buscamos 'binance' que siempre está
+            binance = monitores.get('binance', {}).get('price')
+            if binance: return binance
             
     except:
         return None
 
 def main():
-    tasa = obtener_bybit_secreto()
-    
+    tasa = obtener_tasa_maestra()
     if tasa:
-        resultado = {"bybit": {"price": float(tasa), "fuente": "Mirror Externa"}}
         with open('tasas.json', 'w') as f:
-            json.dump(resultado, f, indent=4)
-        print(f"✅ ¡POR FIN! Bybit: {tasa}")
+            json.dump({"bybit": {"price": float(tasa)}}, f, indent=4)
+        print(f"✅ ¡POR FIN! Tasa capturada: {tasa}")
     else:
-        # Si esto falla, es que GitHub Actions está bajo un bloqueo total de IPs hoy
-        print("🚫 El muro de Bybit sigue en pie. Mañana tendrá otra IP y quizás pase.")
+        print("🚫 El servidor sigue bloqueado. Intenta de nuevo en 30 minutos.")
 
 if __name__ == "__main__":
-    main()    actualizar_repositorio_pruebas()
+    main()
