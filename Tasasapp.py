@@ -13,7 +13,7 @@ HEADERS = {
     "Referer": "https://www.google.com/"
 }
 
-def enviar_alerta_telegram(mensaje):
+
 def enviar_alerta_telegram(mensaje):
     url = f"https://api.telegram.org/bot{TOKEN_BOT}/sendMessage"
     
