@@ -25,7 +25,7 @@ def enviar_alerta_telegram(mensaje):
             "inline_keyboard": [
                 [
                     # Este link suele saltarse mejor los bloqueos
-                    {"text": "🚀 BYBIT USDT (Directo)", "url": "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?monitor=bybit"},
+                    {"text": "🚀 USDT (Directo)", "url": "https://exchangemonitor.net/"},
                 ],
                 [
                     # Una alternativa que siempre carga
