@@ -47,7 +47,7 @@ def barrido_total():
     fuentes = [
         {"n": "CriptoDolar", "u": "https://api.monedasvenezuela.com/v1/dollar/criptodolar", "p": ["price"]},
         {"n": "PyDolar Bybit", "u": "https://pydolarvenezuela-api.vercel.app/api/v1/dollar?monitor=bybit", "p": ["price"]},
-        {"n": "MonedasVZLA", "u": "https://api.monedasvenezuela.com/v1/dollar/bybit", "p": ["price"]},
+        {"n": "Exchangemonitor", "u": "https://exchangemonitor.net/", "p": ["price"]},
         {"n": "DolarToday", "u": "https://s3.amazonaws.com/dolartoday/data.json", "p": ["USD", "dolartoday"]}
     ]
 
